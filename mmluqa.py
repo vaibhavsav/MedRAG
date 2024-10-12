@@ -1,5 +1,6 @@
 from src.medrag import MedRAG
 from datasets import load_dataset
+import re
 
 question = "A lesion causing compression of the facial nerve at the stylomastoid foramen will cause ipsilateral"
 options = {
@@ -30,12 +31,24 @@ for split in dataset:
 # Now `filtered_datasets` is a dictionary where each key (split) has a filtered Pandas DataFrame
 # For example, to get the DataFrame for the "test" split:
 filtered_test_df = filtered_datasets['test']
-
+count =0
 for index, row in filtered_test_df.iterrows():
         question = row['question']
         options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
         answer, snippets, scores = medrag.answer(question=question, options=options, k=32)
         print(answer)
+        pattern = r'(?i)(answer[_ ]?choice|best answer is|correct answer is)\W?["\']?\s*([A-D])["\']?'
+
+        # Extract answer choices
+        match = re.search(pattern, answer)
+        if match:
+            choice = {match.group(2)}
+            print(f'Extracted answer: {choice}')
+            value = row['answer']
+            if choice==str(chr(65 + value)):
+                count+=1
+        else:
+            print("No match found")
 
 
 # answer, snippets, scores = medrag.answer(question=question, options=options, k=32) # scores are given by the retrieval system
