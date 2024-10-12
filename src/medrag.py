@@ -116,6 +116,7 @@ class MedRAG:
                 torch_dtype=torch.bfloat16,
                 device_map="auto",
                 model_kwargs={"cache_dir":self.cache_dir},
+                use_auth_token="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"
             )
         
         self.follow_up = follow_up
