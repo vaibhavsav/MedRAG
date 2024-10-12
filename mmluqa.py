@@ -1,6 +1,8 @@
 from src.medrag import MedRAG
-#from datasets import load_dataset
+from datasets import load_dataset
 import re
+import torch
+import time
 
 from src.utils1 import QADataset
 
@@ -12,35 +14,35 @@ from src.utils1 import QADataset
 #     "D": "paralysis of the facial muscles, loss of taste, lacrimation and decreased salivation."
 # }
 
-# medrag = MedRAG(llm_name="meta-llama/Llama-3.2-1B-Instruct", rag=True, retriever_name="Contriever", corpus_name="StatPearls")
+medrag = MedRAG(llm_name="meta-llama/Llama-3.2-1B-Instruct", rag=True, retriever_name="Contriever", corpus_name="StatPearls")
 
-# desired_subjects = ['anatomy', 'clinical_knowledge', 'professional_medicine', 'human_genetics', 'college_medicine', 'college_biology']
-# dataset = load_dataset('cais/mmlu', "all")
+desired_subjects = ['anatomy', 'clinical_knowledge', 'professional_medicine', 'human_genetics', 'college_medicine', 'college_biology']
+dataset = load_dataset('cais/mmlu', "all")
 
-# def filter_and_convert_to_pandas(ds, desired_subjects):
-#     # Filter the dataset
-#     filtered_ds = ds.filter(lambda row: row['subject'] in desired_subjects)
-#     # Convert the filtered dataset to Pandas DataFrame
-#     return filtered_ds.to_pandas()
+def filter_and_convert_to_pandas(ds, desired_subjects):
+    # Filter the dataset
+    filtered_ds = ds.filter(lambda row: row['subject'] in desired_subjects)
+    # Convert the filtered dataset to Pandas DataFrame
+    return filtered_ds.to_pandas()
 
-# filtered_datasets = {}
+filtered_datasets = {}
 
-# for split in dataset:
-#     print(f"Processing {split} split...")
-#     # Filter and convert each split to a DataFrame
-#     filtered_datasets[split] = filter_and_convert_to_pandas(dataset[split], desired_subjects)
+for split in dataset:
+    print(f"Processing {split} split...")
+    # Filter and convert each split to a DataFrame
+    filtered_datasets[split] = filter_and_convert_to_pandas(dataset[split], desired_subjects)
 
-# # Now `filtered_datasets` is a dictionary where each key (split) has a filtered Pandas DataFrame
-# # For example, to get the DataFrame for the "test" split:
-# filtered_test_df = filtered_datasets['test']
+# Now `filtered_datasets` is a dictionary where each key (split) has a filtered Pandas DataFrame
+# For example, to get the DataFrame for the "test" split:
+filtered_test_df = filtered_datasets['test']
 
 dataset_name = "mmlu"
 dataset = QADataset(dataset_name)
 
-print(len(dataset))
-1089
+# print(len(dataset))
+# 1089
 
-print(dataset[0])
+# print(dataset[0])
 
 # import re
 # import concurrent.futures
@@ -89,26 +91,29 @@ print(dataset[0])
 # print(f'Total correct answers: {correct_count}')
 
 
-# count =0
-# for index, row in filtered_test_df.iterrows():
-#         question = row['question']
-#         options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
-#         answer, snippets, scores = medrag.answer(question=question, options=options, k=32)
-#         #print(answer)
-#         pattern = r'(?i)(answer[_ ]?choice|best answer is|correct answer is)\W?["\']?\s*([A-D])["\']?'
+count =0
+for index, row in filtered_test_df.iterrows():
+        question = row['question']
+        options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
+        torch.cuda.empty_cache()
+        answer, snippets, scores = medrag.answer(question=question, options=options, k=32)
+        #print(answer)
+        pattern = r'(?i)(answer[_ ]?choice|best answer is|correct answer is)\W?["\']?\s*([A-D])["\']?'
 
-#         # Extract answer choices
-#         match = re.search(pattern, answer)
-#         if match:
-#             choice = {match.group(2)}
-#             print(f'Extracted answer: {choice}')
-#             value = row['answer']
-#             if choice==str(chr(65 + value)):
-#                 count+=1
-#         else:
-#             print("No match found")
+        # Extract answer choices
+        match = re.search(pattern, answer)
+        if match:
+            choice = {match.group(2)}
+            print(f'Extracted answer: {choice}')
+            value = row['answer']
+            if choice==str(chr(65 + value)):
+                count+=1
+        else:
+            print("No match found")
+        
+        time.sleep(1)
 
-# print(count)
+print(count)
 # answer, snippets, scores = medrag.answer(question=question, options=options, k=32) # scores are given by the retrieval system
 # print(f"Final answer in json with rationale: {answer}")
 # {
