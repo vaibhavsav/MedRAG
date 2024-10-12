@@ -3,6 +3,7 @@ from datasets import load_dataset
 import re
 import torch
 import time
+import gc
 
 from src.utils1 import QADataset
 
@@ -96,6 +97,7 @@ for index, row in filtered_test_df.iterrows():
         question = row['question']
         options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
         torch.cuda.empty_cache()
+        gc.collect()
         answer, snippets, scores = medrag.answer(question=question, options=options, k=10)
         #print(answer)
         pattern = r'(?i)(answer[_ ]?choice|best answer is|correct answer is)\W?["\']?\s*([A-D])["\']?'
