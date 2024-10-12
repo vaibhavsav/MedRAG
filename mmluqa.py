@@ -5,7 +5,7 @@ import torch
 import time
 import gc
 
-from src.utils1 import QADataset
+from src.utils1 import QADataset,locate_answer
 
 # question = "A lesion causing compression of the facial nerve at the stylomastoid foramen will cause ipsilateral"
 # options = {
@@ -98,23 +98,31 @@ for index, row in filtered_test_df.iterrows():
         options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
         torch.cuda.empty_cache()
         gc.collect()
-        answer, snippets, scores = medrag.answer(question=question, options=options, k=15)
+        answer, snippets, scores = medrag.answer(question=question, options=options, k=16)
+        choice = locate_answer(answer)
+        value = row['answer']
+        if choice==str(chr(65 + value)):
+                 count+=1
+        print(f'Extracted answer: {choice} and actual answer: {str(chr(65 + value))}')
+        torch.cuda.empty_cache()
+        gc.collect()
+
         #print(answer)
-        pattern = r'(?i)(answer[_ ]?choice|best answer is|correct answer is)\W?["\']?\s*([A-D])["\']?'
+        # pattern = r'(?i)(answer[_ ]?choice|best answer is|correct answer is)\W?["\']?\s*([A-D])["\']?'
 
         # Extract answer choices
-        match = re.search(pattern, answer)
-        if match:
-            choice = {match.group(2)}
-            print(f'Extracted answer: {choice}')
-            value = row['answer']
-            if choice==str(chr(65 + value)):
-                count+=1
-            print(f'Extracted answer: {choice} and actual answer: {str(chr(65 + value))}')
-        else:
-            print("No match found")
+        # match = re.search(pattern, answer)
+        # if match:
+        #     choice = {match.group(2)}
+        #    # print(f'Extracted answer: {choice}')
+        #     value = row['answer']
+        #     if choice==str(chr(65 + value)):
+        #         count+=1
+        #     print(f'Extracted answer: {choice} and actual answer: {str(chr(65 + value))}')
+        # else:
+        #     print("No match found")
         
-        time.sleep(1)
+        # time.sleep(1)
 
 print(count)
 # answer, snippets, scores = medrag.answer(question=question, options=options, k=32) # scores are given by the retrieval system
