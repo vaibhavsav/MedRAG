@@ -36,7 +36,7 @@ for index, row in filtered_test_df.iterrows():
         question = row['question']
         options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
         answer, snippets, scores = medrag.answer(question=question, options=options, k=32)
-        print(answer)
+        #print(answer)
         pattern = r'(?i)(answer[_ ]?choice|best answer is|correct answer is)\W?["\']?\s*([A-D])["\']?'
 
         # Extract answer choices
