@@ -98,7 +98,7 @@ for index, row in filtered_test_df.iterrows():
         options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
         torch.cuda.empty_cache()
         gc.collect()
-        answer, snippets, scores = medrag.answer(question=question, options=options, k=10)
+        answer, snippets, scores = medrag.answer(question=question, options=options, k=15)
         #print(answer)
         pattern = r'(?i)(answer[_ ]?choice|best answer is|correct answer is)\W?["\']?\s*([A-D])["\']?'
 
