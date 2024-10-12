@@ -8,7 +8,7 @@ options = {
     "D": "paralysis of the facial muscles, loss of taste, lacrimation and decreased salivation."
 }
 
-medrag = MedRAG(llm_name="meta-llama/Llama-3.2-1B-Instruct", rag=True, retriever_name="MedCPT", corpus_name="Textbooks")
+medrag = MedRAG(llm_name="meta-llama/Llama-3.2-1B-Instruct", rag=True, retriever_name="Contriever", corpus_name="StatPearls")
 answer, snippets, scores = medrag.answer(question=question, options=options, k=32) # scores are given by the retrieval system
 print(f"Final answer in json with rationale: {answer}")
 # {
