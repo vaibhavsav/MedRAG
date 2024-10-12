@@ -108,6 +108,7 @@ for index, row in filtered_test_df.iterrows():
             value = row['answer']
             if choice==str(chr(65 + value)):
                 count+=1
+            print(f'Extracted answer: {choice} and actual answer: {value}')
         else:
             print("No match found")
         
