@@ -96,7 +96,7 @@ for index, row in filtered_test_df.iterrows():
         question = row['question']
         options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
         torch.cuda.empty_cache()
-        answer, snippets, scores = medrag.answer(question=question, options=options, k=15)
+        answer, snippets, scores = medrag.answer(question=question, options=options, k=10)
         #print(answer)
         pattern = r'(?i)(answer[_ ]?choice|best answer is|correct answer is)\W?["\']?\s*([A-D])["\']?'
 
@@ -108,7 +108,7 @@ for index, row in filtered_test_df.iterrows():
             value = row['answer']
             if choice==str(chr(65 + value)):
                 count+=1
-            print(f'Extracted answer: {choice} and actual answer: {value}')
+            print(f'Extracted answer: {choice} and actual answer: {str(chr(65 + value))}')
         else:
             print("No match found")
         
