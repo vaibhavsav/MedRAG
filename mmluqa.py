@@ -1,82 +1,92 @@
 from src.medrag import MedRAG
-from datasets import load_dataset
+#from datasets import load_dataset
 import re
 
-question = "A lesion causing compression of the facial nerve at the stylomastoid foramen will cause ipsilateral"
-options = {
-    "A": "paralysis of the facial muscles.",
-    "B": "paralysis of the facial muscles and loss of taste.",
-    "C": "paralysis of the facial muscles, loss of taste and lacrimation.",
-    "D": "paralysis of the facial muscles, loss of taste, lacrimation and decreased salivation."
-}
+from src.utils1 import QADataset
 
-medrag = MedRAG(llm_name="meta-llama/Llama-3.2-1B-Instruct", rag=True, retriever_name="Contriever", corpus_name="StatPearls")
+# question = "A lesion causing compression of the facial nerve at the stylomastoid foramen will cause ipsilateral"
+# options = {
+#     "A": "paralysis of the facial muscles.",
+#     "B": "paralysis of the facial muscles and loss of taste.",
+#     "C": "paralysis of the facial muscles, loss of taste and lacrimation.",
+#     "D": "paralysis of the facial muscles, loss of taste, lacrimation and decreased salivation."
+# }
 
-desired_subjects = ['anatomy', 'clinical_knowledge', 'professional_medicine', 'human_genetics', 'college_medicine', 'college_biology']
-dataset = load_dataset('cais/mmlu', "all")
+# medrag = MedRAG(llm_name="meta-llama/Llama-3.2-1B-Instruct", rag=True, retriever_name="Contriever", corpus_name="StatPearls")
 
-def filter_and_convert_to_pandas(ds, desired_subjects):
-    # Filter the dataset
-    filtered_ds = ds.filter(lambda row: row['subject'] in desired_subjects)
-    # Convert the filtered dataset to Pandas DataFrame
-    return filtered_ds.to_pandas()
+# desired_subjects = ['anatomy', 'clinical_knowledge', 'professional_medicine', 'human_genetics', 'college_medicine', 'college_biology']
+# dataset = load_dataset('cais/mmlu', "all")
 
-filtered_datasets = {}
+# def filter_and_convert_to_pandas(ds, desired_subjects):
+#     # Filter the dataset
+#     filtered_ds = ds.filter(lambda row: row['subject'] in desired_subjects)
+#     # Convert the filtered dataset to Pandas DataFrame
+#     return filtered_ds.to_pandas()
 
-for split in dataset:
-    print(f"Processing {split} split...")
-    # Filter and convert each split to a DataFrame
-    filtered_datasets[split] = filter_and_convert_to_pandas(dataset[split], desired_subjects)
+# filtered_datasets = {}
 
-# Now `filtered_datasets` is a dictionary where each key (split) has a filtered Pandas DataFrame
-# For example, to get the DataFrame for the "test" split:
-filtered_test_df = filtered_datasets['test']
+# for split in dataset:
+#     print(f"Processing {split} split...")
+#     # Filter and convert each split to a DataFrame
+#     filtered_datasets[split] = filter_and_convert_to_pandas(dataset[split], desired_subjects)
 
-import re
-import concurrent.futures
+# # Now `filtered_datasets` is a dictionary where each key (split) has a filtered Pandas DataFrame
+# # For example, to get the DataFrame for the "test" split:
+# filtered_test_df = filtered_datasets['test']
 
-def process_row(index, row):
-    question = row['question']
-    options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
+dataset_name = "mmlu"
+dataset = QADataset(dataset_name)
+
+print(len(dataset))
+1089
+
+print(dataset[0])
+
+# import re
+# import concurrent.futures
+
+# def process_row(index, row):
+#     question = row['question']
+#     options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
     
-    # Get the answer from medrag
-    answer, snippets, scores = medrag.answer(question=question, options=options, k=32)
+#     # Get the answer from medrag
+#     answer, snippets, scores = medrag.answer(question=question, options=options, k=32)
 
-    # Pattern to extract answer
-    pattern = r'(?i)(answer[_ ]?choice|best answer is|correct answer is)\W?["\']?\s*([A-D])["\']?'
+#     # Pattern to extract answer
+#     pattern = r'(?i)(answer[_ ]?choice|best answer is|correct answer is)\W?["\']?\s*([A-D])["\']?'
     
-    # Extract the answer choice
-    match = re.search(pattern, answer)
-    if match:
-        choice = {match.group(2)}
-        print(f'Extracted answer: {choice}')
-        value = row['answer']
+#     # Extract the answer choice
+#     match = re.search(pattern, answer)
+#     if match:
+#         choice = {match.group(2)}
+#         print(f'Extracted answer: {choice}')
+#         value = row['answer']
         
-        # Check if the extracted answer is correct
-        if choice == str(chr(65 + value)):
-            return 1  # Return 1 if correct
-    else:
-        print("No match found")
+#         # Check if the extracted answer is correct
+#         if choice == str(chr(65 + value)):
+#             return 1  # Return 1 if correct
+#     else:
+#         print("No match found")
     
-    return 0  # Return 0 if no match or incorrect answer
+#     return 0  # Return 0 if no match or incorrect answer
 
-def run_in_parallel(filtered_test_df):
-    count = 0
+# def run_in_parallel(filtered_test_df):
+#     count = 0
     
-    # Use ThreadPoolExecutor for parallel execution
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        # Create a list of futures
-        futures = [executor.submit(process_row, index, row) for index, row in filtered_test_df.iterrows()]
+#     # Use ThreadPoolExecutor for parallel execution
+#     with concurrent.futures.ThreadPoolExecutor() as executor:
+#         # Create a list of futures
+#         futures = [executor.submit(process_row, index, row) for index, row in filtered_test_df.iterrows()]
         
-        # Gather the results as they complete
-        for future in concurrent.futures.as_completed(futures):
-            count += future.result()  # Add the result (1 or 0) to count
+#         # Gather the results as they complete
+#         for future in concurrent.futures.as_completed(futures):
+#             count += future.result()  # Add the result (1 or 0) to count
     
-    return count
+#     return count
 
-# Run the parallel processing
-correct_count = run_in_parallel(filtered_test_df)
-print(f'Total correct answers: {correct_count}')
+# # Run the parallel processing
+# correct_count = run_in_parallel(filtered_test_df)
+# print(f'Total correct answers: {correct_count}')
 
 
 # count =0
