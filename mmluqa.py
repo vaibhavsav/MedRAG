@@ -50,7 +50,7 @@ for index, row in filtered_test_df.iterrows():
         else:
             print("No match found")
 
-
+print(count)
 # answer, snippets, scores = medrag.answer(question=question, options=options, k=32) # scores are given by the retrieval system
 # print(f"Final answer in json with rationale: {answer}")
 # {
