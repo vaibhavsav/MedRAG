@@ -31,26 +31,74 @@ for split in dataset:
 # Now `filtered_datasets` is a dictionary where each key (split) has a filtered Pandas DataFrame
 # For example, to get the DataFrame for the "test" split:
 filtered_test_df = filtered_datasets['test']
-count =0
-for index, row in filtered_test_df.iterrows():
-        question = row['question']
-        options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
-        answer, snippets, scores = medrag.answer(question=question, options=options, k=32)
-        #print(answer)
-        pattern = r'(?i)(answer[_ ]?choice|best answer is|correct answer is)\W?["\']?\s*([A-D])["\']?'
 
-        # Extract answer choices
-        match = re.search(pattern, answer)
-        if match:
-            choice = {match.group(2)}
-            print(f'Extracted answer: {choice}')
-            value = row['answer']
-            if choice==str(chr(65 + value)):
-                count+=1
-        else:
-            print("No match found")
+import re
+import concurrent.futures
 
-print(count)
+def process_row(index, row):
+    question = row['question']
+    options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
+    
+    # Get the answer from medrag
+    answer, snippets, scores = medrag.answer(question=question, options=options, k=32)
+
+    # Pattern to extract answer
+    pattern = r'(?i)(answer[_ ]?choice|best answer is|correct answer is)\W?["\']?\s*([A-D])["\']?'
+    
+    # Extract the answer choice
+    match = re.search(pattern, answer)
+    if match:
+        choice = {match.group(2)}
+        print(f'Extracted answer: {choice}')
+        value = row['answer']
+        
+        # Check if the extracted answer is correct
+        if choice == str(chr(65 + value)):
+            return 1  # Return 1 if correct
+    else:
+        print("No match found")
+    
+    return 0  # Return 0 if no match or incorrect answer
+
+def run_in_parallel(filtered_test_df):
+    count = 0
+    
+    # Use ThreadPoolExecutor for parallel execution
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        # Create a list of futures
+        futures = [executor.submit(process_row, index, row) for index, row in filtered_test_df.iterrows()]
+        
+        # Gather the results as they complete
+        for future in concurrent.futures.as_completed(futures):
+            count += future.result()  # Add the result (1 or 0) to count
+    
+    return count
+
+# Run the parallel processing
+correct_count = run_in_parallel(filtered_test_df)
+print(f'Total correct answers: {correct_count}')
+
+
+# count =0
+# for index, row in filtered_test_df.iterrows():
+#         question = row['question']
+#         options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
+#         answer, snippets, scores = medrag.answer(question=question, options=options, k=32)
+#         #print(answer)
+#         pattern = r'(?i)(answer[_ ]?choice|best answer is|correct answer is)\W?["\']?\s*([A-D])["\']?'
+
+#         # Extract answer choices
+#         match = re.search(pattern, answer)
+#         if match:
+#             choice = {match.group(2)}
+#             print(f'Extracted answer: {choice}')
+#             value = row['answer']
+#             if choice==str(chr(65 + value)):
+#                 count+=1
+#         else:
+#             print("No match found")
+
+# print(count)
 # answer, snippets, scores = medrag.answer(question=question, options=options, k=32) # scores are given by the retrieval system
 # print(f"Final answer in json with rationale: {answer}")
 # {
