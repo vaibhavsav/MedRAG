@@ -278,7 +278,7 @@ filtered_test_df = filtered_datasets['test']
 # print(f'Total correct answers: {count}')
 
 
-from multiprocessing import Process, Manager, set_start_method,get_start_method
+# from multiprocessing import Process, Manager, set_start_method,get_start_method
 
 def process_batch(batch_df):
     count = 0
