@@ -6,7 +6,7 @@ import time
 import gc
 
 from src.utils1 import QADataset,locate_answer
-from torch.utils.data import Dataset, DataLoader
+# from torch.utils.data import Dataset, DataLoader
 import multiprocessing as mp
 
 # question = "A lesion causing compression of the facial nerve at the stylomastoid foramen will cause ipsilateral"
@@ -276,36 +276,72 @@ filtered_test_df = filtered_datasets['test']
 # print(f'Total correct answers: {count}')
 
 
-from multiprocessing import Process
+from multiprocessing import Process, Manager, set_start_method
 
-def process_batch(batch_df):
+# def process_batch(batch_df):
+#     count = 0
+#     for index, row in batch_df.iterrows():
+#         question = row['question']  # Adjust column name as necessary
+#         options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
+#         torch.cuda.empty_cache()
+#         gc.collect()
+#         answer, _, _ = medrag.answer(question=question, options=options, k=12)
+#         choice = locate_answer(answer)
+#         value = row['answer']
+#         if choice == str(str(chr(65 + value))):
+#             count += 1
+#         print(f'Extracted answer: {choice} and actual answer: {str(chr(65 + value))}')
+#         time.sleep(1)
+#     print(f'Batch processed. Correct answers: {count(count)}')
+
+#     # Split data into batches
+# batch_size = 150
+# batches = [filtered_test_df.iloc[i:i+batch_size] for i in range(0, len(filtered_test_df), batch_size)]
+
+# # Process each batch in separate processes
+# for batch_df in batches:
+#     p = Process(target=process_batch, args=(batch_df,))
+#     #,))
+# # ,))
+#     p.start()
+#     p.join()  # Wait for the process to finish before starting the next one
+# #``
+
+#print("All batches have been processed.")
+
+def process_batch(batch_df, batch_num, return_dict):
     count = 0
     for index, row in batch_df.iterrows():
-        question = row['question']  # Adjust column name as necessary
+        question = row['question']
         options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
         torch.cuda.empty_cache()
         gc.collect()
         answer, _, _ = medrag.answer(question=question, options=options, k=12)
         choice = locate_answer(answer)
         value = row['answer']
-        if choice == str(str(chr(65 + value))):
+        if choice == str(chr(65 + value)):
             count += 1
         print(f'Extracted answer: {choice} and actual answer: {str(chr(65 + value))}')
         time.sleep(1)
-    print(f'Batch processed. Correct answers: {count(count)}')
+    print(f'Count in batch {batch_num}: {count}')
+    # Store the count in the shared dictionary
+    return_dict[batch_num] = count
 
-    # Split data into batches
+set_start_method('spawn')  # Use 'spawn' or 'forkserver' depending on your system
 batch_size = 150
-batches = [filtered_test_df.iloc[i:i+batch_size] for i in range(0, len(filtered_test_df), batch_size)]
+total_rows = len(filtered_test_df)
+num_batches = total_rows // batch_size + (1 if total_rows % batch_size > 0 else 0)
+manager = Manager()
+return_dict = manager.dict()
 
-# Process each batch in separate processes
-for batch_df in batches:
-    p = Process(target=process_batch, args=(batch_df,))
-    #,))
-# ,))
-    p.start()
-    p.join()  # Wait for the process to finish before starting the next one
-#``
+for i in range(num_batches):
+        # Slice the DataFrame for the current batch
+        batch_df = filtered_test_df.iloc[i*batch_size:(i+1)*batch_size]
+        p = Process(target=process_batch, args=(batch_df, i, return_dict))
+        p.start()
+        p.join()  # Wait for the process to finish before starting the next one
 
-print("All batches have been processed.")
+    # Sum the counts from all batches
+total_count = sum(return_dict.values())
+print(f'Total correct answers: {total_count}')
 
