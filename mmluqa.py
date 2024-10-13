@@ -98,39 +98,39 @@ filtered_test_df = filtered_datasets['test']
 # print(f'Total correct answers: {correct_count}')
 
 
-count =0
-for index, row in filtered_test_df.iterrows():
-        question = row['question']
-        options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
-        torch.cuda.empty_cache()
-        gc.collect()
-        answer, _, _ = medrag.answer(question=question, options=options, k=12)
-        choice = locate_answer(answer)
-        value = row['answer']
-        if choice==str(chr(65 + value)):
-                 count+=1
-        print(f'Extracted answer: {choice} and actual answer: {str(chr(65 + value))}')
-        # torch.cuda.empty_cache()
-        # gc.collect()
+# count =0
+# for index, row in filtered_test_df.iterrows():
+#         question = row['question']
+#         options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
+#         torch.cuda.empty_cache()
+#         gc.collect()
+#         answer, _, _ = medrag.answer(question=question, options=options, k=12)
+#         choice = locate_answer(answer)
+#         value = row['answer']
+#         if choice==str(chr(65 + value)):
+#                  count+=1
+#         print(f'Extracted answer: {choice} and actual answer: {str(chr(65 + value))}')
+#         # torch.cuda.empty_cache()
+#         # gc.collect()
 
-        # print(answer)
-        # pattern = r'(?i)(answer[_ ]?choice|best answer is|correct answer is)\W?["\']?\s*([A-D])["\']?'
+#         # print(answer)
+#         # pattern = r'(?i)(answer[_ ]?choice|best answer is|correct answer is)\W?["\']?\s*([A-D])["\']?'
 
-       # Extract answer choices
-        # match = re.search(pattern, answer)
-        # if match:
-        #     choice = {match.group(2)}
-        #    # print(f'Extracted answer: {choice}')
-        #     value = row['answer']
-        #     if choice==str(chr(65 + value)):
-        #         count+=1
-        #     print(f'Extracted answer: {choice} and actual answer: {str(chr(65 + value))}')
-        # else:
-        #     print("No match found")
+#        # Extract answer choices
+#         # match = re.search(pattern, answer)
+#         # if match:
+#         #     choice = {match.group(2)}
+#         #    # print(f'Extracted answer: {choice}')
+#         #     value = row['answer']
+#         #     if choice==str(chr(65 + value)):
+#         #         count+=1
+#         #     print(f'Extracted answer: {choice} and actual answer: {str(chr(65 + value))}')
+#         # else:
+#         #     print("No match found")
         
-        time.sleep(1)
+#         time.sleep(1)
 
-print(count)
+# print(count)
 # answer, snippets, scores = medrag.answer(question=question, options=options, k=32) # scores are given by the retrieval system
 # print(f"Final answer in json with rationale: {answer}")
 # {
@@ -274,4 +274,38 @@ print(count)
 #         gc.collect()
 
 # print(f'Total correct answers: {count}')
+
+
+from multiprocessing import Process
+
+def process_batch(batch_df):
+    count = 0
+    for index, row in batch_df.iterrows():
+        question = row['question']  # Adjust column name as necessary
+        options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
+        torch.cuda.empty_cache()
+        gc.collect()
+        answer, _, _ = medrag.answer(question=question, options=options,, k=12)
+        choice = locate_answer(answer)
+        value = row['answer']
+        if choice == str(str(chr(65 + value))):
+            count += 1
+        print(f'Extracted answer: {choice} and actual answer: {str(chr(65 + value))}')
+        time.sleep(1)
+    print(f'Batch processed. Correct answers: {count(count)}')
+
+    # Split data into batches
+batch_size = 150
+batches = [filtered_test_df.iloc[i:i+batch_size] for i in range(0, len(filtered_test_df), batch_size)]
+
+# Process each batch in separate processes
+for batch_df in batches:
+    p = Process(target=process_batch, args=(batch_df,))
+    #,))
+# ,))
+    p.start()
+    p.join()  # Wait for the process to finish before starting the next one
+#``
+
+print("All batches have been processed.")
 
