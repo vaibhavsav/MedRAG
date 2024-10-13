@@ -98,25 +98,25 @@ filtered_test_df = filtered_datasets['test']
 # print(f'Total correct answers: {correct_count}')
 
 
-# count =0
-# for index, row in filtered_test_df.iterrows():
-#         question = row['question']
-#         options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
-#         torch.cuda.empty_cache()
-#         gc.collect()
-#         answer, snippets, scores = medrag.answer(question=question, options=options, k=16)
-#         choice = locate_answer(answer)
-#         value = row['answer']
-#         if choice==str(chr(65 + value)):
-#                  count+=1
-#         print(f'Extracted answer: {choice} and actual answer: {str(chr(65 + value))}')
-#         torch.cuda.empty_cache()
-#         gc.collect()
+count =0
+for index, row in filtered_test_df.iterrows():
+        question = row['question']
+        options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
+        torch.cuda.empty_cache()
+        gc.collect()
+        answer, snippets, scores = medrag.answer(question=question, options=options, k=16)
+        choice = locate_answer(answer)
+        value = row['answer']
+        if choice==str(chr(65 + value)):
+                 count+=1
+        print(f'Extracted answer: {choice} and actual answer: {str(chr(65 + value))}')
+        # torch.cuda.empty_cache()
+        # gc.collect()
 
-        #print(answer)
+        # print(answer)
         # pattern = r'(?i)(answer[_ ]?choice|best answer is|correct answer is)\W?["\']?\s*([A-D])["\']?'
 
-        # Extract answer choices
+       # Extract answer choices
         # match = re.search(pattern, answer)
         # if match:
         #     choice = {match.group(2)}
@@ -128,9 +128,9 @@ filtered_test_df = filtered_datasets['test']
         # else:
         #     print("No match found")
         
-        # time.sleep(1)
+        time.sleep(1)
 
-#print(count)
+print(count)
 # answer, snippets, scores = medrag.answer(question=question, options=options, k=32) # scores are given by the retrieval system
 # print(f"Final answer in json with rationale: {answer}")
 # {
@@ -199,92 +199,79 @@ filtered_test_df = filtered_datasets['test']
 
 
 
-count = 0
-questions_list = []
-options_list = []
-correct_answers_list = []
+# count = 0
+# questions_list = []
+# options_list = []
+# correct_answers_list = []
 
-    # Function to process a single row
-def process_question(args):
-        index, row = args
-        question = row['question']
-        options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
-        value = row['answer']  # Assuming 'answer' is an integer index starting from 0
-        correct_answer = chr(65 + value)
-        return question, options, correct_answer
+#     # Function to process a single row
+# def process_question(args):
+#         index, row = args
+#         question = row['question']
+#         options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
+#         value = row['answer']  # Assuming 'answer' is an integer index starting from 0
+#         correct_answer = chr(65 + value)
+#         return question, options, correct_answer
 
-    # Prepare the arguments
-args_list = list(filtered_test_df.iterrows())
+#     # Prepare the arguments
+# args_list = list(filtered_test_df.iterrows())
 
-    # Use multiprocessing to process questions
-with mp.Pool(processes=mp.cpu_count()) as pool:
-        results = pool.map(process_question, args_list)
+#     # Use multiprocessing to process questions
+# with mp.Pool(processes=mp.cpu_count()) as pool:
+#         results = pool.map(process_question, args_list)
 
-    # Unpack the results
-questions_list, options_list, correct_answers_list = zip(*results)
+#     # Unpack the results
+# questions_list, options_list, correct_answers_list = zip(*results)
 
-    # Create dataset and dataloader
-class QuestionDataset(Dataset):
-        def __init__(self, questions_list, options_list, correct_answers_list):
-            self.questions = questions_list
-            self.options = options_list
-            self.correct_answers = correct_answers_list
+#     # Create dataset and dataloader
+# class QuestionDataset(Dataset):
+#         def __init__(self, questions_list, options_list, correct_answers_list):
+#             self.questions = questions_list
+#             self.options = options_list
+#             self.correct_answers = correct_answers_list
 
-        def __len__(self):
-            return len(self.questions)
+#         def __len__(self):
+#             return len(self.questions)
 
-        def __getitem__(self, idx):
-            return {
-                'question': self.questions[idx],
-                'options': self.options[idx],
-                'correct_answer': self.correct_answers[idx]
-            }
+#         def __getitem__(self, idx):
+#             return {
+#                 'question': self.questions[idx],
+#                 'options': self.options[idx],
+#                 'correct_answer': self.correct_answers[idx]
+#             }
 
-dataset = QuestionDataset(questions_list, options_list, correct_answers_list)
-batch_size = 32  # Adjust based on GPU memory
-dataloader = DataLoader(dataset, batch_size=batch_size, num_workers=8, shuffle=False, pin_memory=True)
+# dataset = QuestionDataset(questions_list, options_list, correct_answers_list)
+# batch_size = 32  # Adjust based on GPU memory
+# dataloader = DataLoader(dataset, batch_size=batch_size, num_workers=8, shuffle=False, pin_memory=True)
 
-    # Initialize MedRAG instance
-# medrag = MedRAG(
-#         llm_name='your-model-name',  # Replace with your model name
-#         rag=True,
-#         follow_up=False,
-#         retriever_name="MedCPT",
-#         corpus_name="Textbooks",
-#         db_dir="./corpus",
-#         cache_dir=None,
-#         corpus_cache=False,
-#         HNSW=False
-#     )
+# count = 0
 
-count = 0
+#     # Process batches
+# for batch in dataloader:
+#         batch_questions = batch['question']
+#         batch_options = batch['options']
+#         batch_correct_answers = batch['correct_answer']
 
-    # Process batches
-for batch in dataloader:
-        batch_questions = batch['question']
-        batch_options = batch['options']
-        batch_correct_answers = batch['correct_answer']
+#         torch.cuda.empty_cache()
+#         gc.collect()
 
-        torch.cuda.empty_cache()
-        gc.collect()
+#         # Get answers using the updated method
+#         answers, snippets_list, scores_list = medrag.answer(
+#             questions=batch_questions,
+#             options_list=batch_options,
+#             k=16
+#         )
 
-        # Get answers using the updated method
-        answers, snippets_list, scores_list = medrag.answer(
-            questions=batch_questions,
-            options_list=batch_options,
-            k=16
-        )
+#         # Iterate over the batch to compare predicted and actual answers
+#         for i, answer in enumerate(answers):
+#             choice = locate_answer(answer)
+#             correct_choice = batch_correct_answers[i]
+#             if choice == correct_choice:
+#                 count += 1
+#             print(f'Extracted answer: {choice} and actual answer: {correct_choice}')
 
-        # Iterate over the batch to compare predicted and actual answers
-        for i, answer in enumerate(answers):
-            choice = locate_answer(answer)
-            correct_choice = batch_correct_answers[i]
-            if choice == correct_choice:
-                count += 1
-            print(f'Extracted answer: {choice} and actual answer: {correct_choice}')
+#         torch.cuda.empty_cache()
+#         gc.collect()
 
-        torch.cuda.empty_cache()
-        gc.collect()
-
-print(f'Total correct answers: {count}')
+# print(f'Total correct answers: {count}')
 
