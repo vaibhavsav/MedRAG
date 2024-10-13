@@ -276,7 +276,7 @@ filtered_test_df = filtered_datasets['test']
 # print(f'Total correct answers: {count}')
 
 
-from multiprocessing import Process, Manager, set_start_method
+from multiprocessing import Process, Manager, set_start_method,get_start_method
 
 # def process_batch(batch_df):
 #     count = 0
@@ -327,7 +327,8 @@ def process_batch(batch_df, batch_num, return_dict):
     # Store the count in the shared dictionary
     return_dict[batch_num] = count
 
-set_start_method('spawn')  # Use 'spawn' or 'forkserver' depending on your system
+if get_start_method(allow_none=True) is None:
+        set_start_method('spawn')
 batch_size = 150
 total_rows = len(filtered_test_df)
 num_batches = total_rows // batch_size + (1 if total_rows % batch_size > 0 else 0)
