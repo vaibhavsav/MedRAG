@@ -37,8 +37,12 @@ for split in dataset:
 # For example, to get the DataFrame for the "test" split:
 filtered_test_df = filtered_datasets['test']
 
-dataset_name = "mmlu"
-dataset = QADataset(dataset_name)
+# dataset_name = "mmlu"
+# dataset = QADataset(dataset_name)
+
+
+
+
 
 # print(len(dataset))
 # 1089
@@ -92,20 +96,20 @@ dataset = QADataset(dataset_name)
 # print(f'Total correct answers: {correct_count}')
 
 
-count =0
-for index, row in filtered_test_df.iterrows():
-        question = row['question']
-        options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
-        torch.cuda.empty_cache()
-        gc.collect()
-        answer, snippets, scores = medrag.answer(question=question, options=options, k=16)
-        choice = locate_answer(answer)
-        value = row['answer']
-        if choice==str(chr(65 + value)):
-                 count+=1
-        print(f'Extracted answer: {choice} and actual answer: {str(chr(65 + value))}')
-        torch.cuda.empty_cache()
-        gc.collect()
+# count =0
+# for index, row in filtered_test_df.iterrows():
+#         question = row['question']
+#         options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
+#         torch.cuda.empty_cache()
+#         gc.collect()
+#         answer, snippets, scores = medrag.answer(question=question, options=options, k=16)
+#         choice = locate_answer(answer)
+#         value = row['answer']
+#         if choice==str(chr(65 + value)):
+#                  count+=1
+#         print(f'Extracted answer: {choice} and actual answer: {str(chr(65 + value))}')
+#         torch.cuda.empty_cache()
+#         gc.collect()
 
         #print(answer)
         # pattern = r'(?i)(answer[_ ]?choice|best answer is|correct answer is)\W?["\']?\s*([A-D])["\']?'
@@ -124,7 +128,7 @@ for index, row in filtered_test_df.iterrows():
         
         # time.sleep(1)
 
-print(count)
+#print(count)
 # answer, snippets, scores = medrag.answer(question=question, options=options, k=32) # scores are given by the retrieval system
 # print(f"Final answer in json with rationale: {answer}")
 # {
@@ -139,3 +143,53 @@ print(count)
 # ### MedRAG with pre-determined snippet ids
 # snippets_ids = [{"id": s["id"]} for s in snippets]
 # answer, snippets, _ = medrag.answer(question=question, options=options, snippets_ids=snippets_ids)
+
+
+# Initialize variables
+count = 0
+questions_list = []
+options_list = []
+correct_answers_list = []
+
+# Collect questions, options, and correct answers into lists
+for index, row in filtered_test_df.iterrows():
+    question = row['question']
+    options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
+    value = row['answer']  # Assuming 'answer' is an integer index starting from 0
+
+    questions_list.append(question)
+    options_list.append(options)
+    correct_answers_list.append(chr(65 + value))  # Convert index to corresponding letter
+
+# Define batch size to manage memory usage
+batch_size = 10  # You can adjust this based on your GPU memory
+
+# Process questions in batches
+for batch_start in range(0, len(questions_list), batch_size):
+    batch_end = batch_start + batch_size
+    batch_questions = questions_list[batch_start:batch_end]
+    batch_options = options_list[batch_start:batch_end]
+    batch_correct_answers = correct_answers_list[batch_start:batch_end]
+
+    torch.cuda.empty_cache()
+    gc.collect()
+
+    # Get answers using the updated method
+    answers, snippets_list, scores_list = medrag.answer(
+        questions=batch_questions,
+        options_list=batch_options,
+        k=16
+    )
+
+    # Iterate over the batch to compare predicted and actual answers
+    for i, answer in enumerate(answers):
+        choice = locate_answer(answer)
+        correct_choice = batch_correct_answers[i]
+        if choice == correct_choice:
+            count += 1
+        print(f'Extracted answer: {choice} and actual answer: {correct_choice}')
+
+    torch.cuda.empty_cache()
+    gc.collect()
+
+print(f'Total correct answers: {count}')
