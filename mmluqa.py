@@ -104,7 +104,7 @@ for index, row in filtered_test_df.iterrows():
         options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
         torch.cuda.empty_cache()
         gc.collect()
-        answer, snippets, scores = medrag.answer(question=question, options=options, k=16)
+        answer, _, _ = medrag.answer(question=question, options=options, k=12)
         choice = locate_answer(answer)
         value = row['answer']
         if choice==str(chr(65 + value)):
