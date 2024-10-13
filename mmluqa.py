@@ -1,4 +1,4 @@
-from src.medrag import MedRAG
+from src.parallel_medrag_gpu import MedRAG
 from datasets import load_dataset
 import re
 import torch
@@ -6,6 +6,8 @@ import time
 import gc
 
 from src.utils1 import QADataset,locate_answer
+from torch.utils.data import Dataset, DataLoader
+import multiprocessing as mp
 
 # question = "A lesion causing compression of the facial nerve at the stylomastoid foramen will cause ipsilateral"
 # options = {
@@ -145,51 +147,144 @@ filtered_test_df = filtered_datasets['test']
 # answer, snippets, _ = medrag.answer(question=question, options=options, snippets_ids=snippets_ids)
 
 
-# Initialize variables
+# # Initialize variables
+# count = 0
+# questions_list = []
+# options_list = []
+# correct_answers_list = []
+
+# # Collect questions, options, and correct answers into lists
+# for index, row in filtered_test_df.iterrows():
+#     question = row['question']
+#     options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
+#     value = row['answer']  # Assuming 'answer' is an integer index starting from 0
+
+#     questions_list.append(question)
+#     options_list.append(options)
+#     correct_answers_list.append(chr(65 + value))  # Convert index to corresponding letter
+
+# # Define batch size to manage memory usage
+# batch_size = 10  # You can adjust this based on your GPU memory
+
+# # Process questions in batches
+# for batch_start in range(0, len(questions_list), batch_size):
+#     batch_end = batch_start + batch_size
+#     batch_questions = questions_list[batch_start:batch_end]
+#     batch_options = options_list[batch_start:batch_end]
+#     batch_correct_answers = correct_answers_list[batch_start:batch_end]
+
+#     torch.cuda.empty_cache()
+#     gc.collect()
+
+#     # Get answers using the updated method
+#     answers, snippets_list, scores_list = medrag.answer(
+#         questions=batch_questions,
+#         options_list=batch_options,
+#         k=16
+#     )
+
+#     # Iterate over the batch to compare predicted and actual answers
+#     for i, answer in enumerate(answers):
+#         choice = locate_answer(answer)
+#         correct_choice = batch_correct_answers[i]
+#         if choice == correct_choice:
+#             count += 1
+#         print(f'Extracted answer: {choice} and actual answer: {correct_choice}')
+
+#     torch.cuda.empty_cache()
+#     gc.collect()
+
+# print(f'Total correct answers: {count}')
+
+
+
+
 count = 0
 questions_list = []
 options_list = []
 correct_answers_list = []
 
-# Collect questions, options, and correct answers into lists
-for index, row in filtered_test_df.iterrows():
-    question = row['question']
-    options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
-    value = row['answer']  # Assuming 'answer' is an integer index starting from 0
+    # Function to process a single row
+def process_question(args):
+        index, row = args
+        question = row['question']
+        options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
+        value = row['answer']  # Assuming 'answer' is an integer index starting from 0
+        correct_answer = chr(65 + value)
+        return question, options, correct_answer
 
-    questions_list.append(question)
-    options_list.append(options)
-    correct_answers_list.append(chr(65 + value))  # Convert index to corresponding letter
+    # Prepare the arguments
+args_list = list(filtered_test_df.iterrows())
 
-# Define batch size to manage memory usage
-batch_size = 10  # You can adjust this based on your GPU memory
+    # Use multiprocessing to process questions
+with mp.Pool(processes=mp.cpu_count()) as pool:
+        results = pool.map(process_question, args_list)
 
-# Process questions in batches
-for batch_start in range(0, len(questions_list), batch_size):
-    batch_end = batch_start + batch_size
-    batch_questions = questions_list[batch_start:batch_end]
-    batch_options = options_list[batch_start:batch_end]
-    batch_correct_answers = correct_answers_list[batch_start:batch_end]
+    # Unpack the results
+questions_list, options_list, correct_answers_list = zip(*results)
 
-    torch.cuda.empty_cache()
-    gc.collect()
+    # Create dataset and dataloader
+class QuestionDataset(Dataset):
+        def __init__(self, questions_list, options_list, correct_answers_list):
+            self.questions = questions_list
+            self.options = options_list
+            self.correct_answers = correct_answers_list
 
-    # Get answers using the updated method
-    answers, snippets_list, scores_list = medrag.answer(
-        questions=batch_questions,
-        options_list=batch_options,
-        k=16
-    )
+        def __len__(self):
+            return len(self.questions)
 
-    # Iterate over the batch to compare predicted and actual answers
-    for i, answer in enumerate(answers):
-        choice = locate_answer(answer)
-        correct_choice = batch_correct_answers[i]
-        if choice == correct_choice:
-            count += 1
-        print(f'Extracted answer: {choice} and actual answer: {correct_choice}')
+        def __getitem__(self, idx):
+            return {
+                'question': self.questions[idx],
+                'options': self.options[idx],
+                'correct_answer': self.correct_answers[idx]
+            }
 
-    torch.cuda.empty_cache()
-    gc.collect()
+dataset = QuestionDataset(questions_list, options_list, correct_answers_list)
+batch_size = 32  # Adjust based on GPU memory
+dataloader = DataLoader(dataset, batch_size=batch_size, num_workers=8, shuffle=False, pin_memory=True)
+
+    # Initialize MedRAG instance
+# medrag = MedRAG(
+#         llm_name='your-model-name',  # Replace with your model name
+#         rag=True,
+#         follow_up=False,
+#         retriever_name="MedCPT",
+#         corpus_name="Textbooks",
+#         db_dir="./corpus",
+#         cache_dir=None,
+#         corpus_cache=False,
+#         HNSW=False
+#     )
+
+count = 0
+
+    # Process batches
+for batch in dataloader:
+        batch_questions = batch['question']
+        batch_options = batch['options']
+        batch_correct_answers = batch['correct_answer']
+
+        torch.cuda.empty_cache()
+        gc.collect()
+
+        # Get answers using the updated method
+        answers, snippets_list, scores_list = medrag.answer(
+            questions=batch_questions,
+            options_list=batch_options,
+            k=16
+        )
+
+        # Iterate over the batch to compare predicted and actual answers
+        for i, answer in enumerate(answers):
+            choice = locate_answer(answer)
+            correct_choice = batch_correct_answers[i]
+            if choice == correct_choice:
+                count += 1
+            print(f'Extracted answer: {choice} and actual answer: {correct_choice}')
+
+        torch.cuda.empty_cache()
+        gc.collect()
 
 print(f'Total correct answers: {count}')
+
