@@ -260,6 +260,20 @@ import multiprocessing as mp
 
 from multiprocessing import Process,set_start_method
 
+medrag = MedRAG(llm_name="meta-llama/Llama-3.2-1B-Instruct", rag=True, retriever_name="Contriever", corpus_name="StatPearls")
+
+desired_subjects = ['anatomy', 'clinical_knowledge', 'professional_medicine', 'human_genetics', 'college_medicine', 'college_biology']
+dataset = load_dataset('cais/mmlu', "all")
+
+def filter_and_convert_to_pandas(ds, desired_subjects):
+        # Filter the dataset
+        filtered_ds = ds.filter(lambda row: row['subject'] in desired_subjects)
+        # Convert the filtered dataset to Pandas DataFrame
+        return filtered_ds.to_pandas()
+
+filtered_datasets = {}
+
+
 def process_batch(batch_df):
     count = 0
     for index, row in batch_df.iterrows():
@@ -283,18 +297,6 @@ if __name__ == "__main__":
     except RuntimeError:
             pass
         # Split data into batches
-    medrag = MedRAG(llm_name="meta-llama/Llama-3.2-1B-Instruct", rag=True, retriever_name="Contriever", corpus_name="StatPearls")
-
-    desired_subjects = ['anatomy', 'clinical_knowledge', 'professional_medicine', 'human_genetics', 'college_medicine', 'college_biology']
-    dataset = load_dataset('cais/mmlu', "all")
-
-    def filter_and_convert_to_pandas(ds, desired_subjects):
-        # Filter the dataset
-        filtered_ds = ds.filter(lambda row: row['subject'] in desired_subjects)
-        # Convert the filtered dataset to Pandas DataFrame
-        return filtered_ds.to_pandas()
-
-    filtered_datasets = {}
 
     for split in dataset:
         print(f"Processing {split} split...")
