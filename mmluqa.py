@@ -327,8 +327,10 @@ def process_batch(batch_df, batch_num, return_dict):
     # Store the count in the shared dictionary
     return_dict[batch_num] = count
 
-if get_start_method(allow_none=True) is None:
-        set_start_method('spawn')
+try:
+        set_start_method('spawn', force=True)  # Ensure 'spawn' is used
+except RuntimeError:
+        pass
 batch_size = 150
 total_rows = len(filtered_test_df)
 num_batches = total_rows // batch_size + (1 if total_rows % batch_size > 0 else 0)
