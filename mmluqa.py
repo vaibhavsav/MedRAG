@@ -19,27 +19,7 @@ import multiprocessing as mp
 
 
 
-medrag = MedRAG(llm_name="meta-llama/Llama-3.2-1B-Instruct", rag=True, retriever_name="Contriever", corpus_name="StatPearls")
 
-desired_subjects = ['anatomy', 'clinical_knowledge', 'professional_medicine', 'human_genetics', 'college_medicine', 'college_biology']
-dataset = load_dataset('cais/mmlu', "all")
-
-def filter_and_convert_to_pandas(ds, desired_subjects):
-    # Filter the dataset
-    filtered_ds = ds.filter(lambda row: row['subject'] in desired_subjects)
-    # Convert the filtered dataset to Pandas DataFrame
-    return filtered_ds.to_pandas()
-
-filtered_datasets = {}
-
-for split in dataset:
-    print(f"Processing {split} split...")
-    # Filter and convert each split to a DataFrame
-    filtered_datasets[split] = filter_and_convert_to_pandas(dataset[split], desired_subjects)
-
-# Now `filtered_datasets` is a dictionary where each key (split) has a filtered Pandas DataFrame
-# For example, to get the DataFrame for the "test" split:
-filtered_test_df = filtered_datasets['test']
 
 # dataset_name = "mmlu"
 # dataset = QADataset(dataset_name)
@@ -278,7 +258,7 @@ filtered_test_df = filtered_datasets['test']
 # print(f'Total correct answers: {count}')
 
 
-from multiprocessing import Process
+from multiprocessing import Process,set_start_method
 
 def process_batch(batch_df):
     count = 0
@@ -296,18 +276,46 @@ def process_batch(batch_df):
         time.sleep(1)
     print(f'Batch processed. Correct answers: {count(count)}')
 
-    # Split data into batches
-batch_size = 150
-batches = [filtered_test_df.iloc[i:i+batch_size] for i in range(0, len(filtered_test_df), batch_size)]
+if __name__ == "__main__":
 
-# Process each batch in separate processes
-for batch_df in batches:
-    p = Process(target=process_batch, args=(batch_df,))
-    #,))
-# ,))
-    p.start()
-    p.join()  # Wait for the process to finish before starting the next one
-#``
+    try:
+            set_start_method('spawn', force=True)  # Ensure 'spawn' is used
+    except RuntimeError:
+            pass
+        # Split data into batches
+    medrag = MedRAG(llm_name="meta-llama/Llama-3.2-1B-Instruct", rag=True, retriever_name="Contriever", corpus_name="StatPearls")
+
+    desired_subjects = ['anatomy', 'clinical_knowledge', 'professional_medicine', 'human_genetics', 'college_medicine', 'college_biology']
+    dataset = load_dataset('cais/mmlu', "all")
+
+    def filter_and_convert_to_pandas(ds, desired_subjects):
+        # Filter the dataset
+        filtered_ds = ds.filter(lambda row: row['subject'] in desired_subjects)
+        # Convert the filtered dataset to Pandas DataFrame
+        return filtered_ds.to_pandas()
+
+    filtered_datasets = {}
+
+    for split in dataset:
+        print(f"Processing {split} split...")
+        # Filter and convert each split to a DataFrame
+        filtered_datasets[split] = filter_and_convert_to_pandas(dataset[split], desired_subjects)
+
+# Now `filtered_datasets` is a dictionary where each key (split) has a filtered Pandas DataFrame
+# For example, to get the DataFrame for the "test" split:
+    filtered_test_df = filtered_datasets['test']
+
+    batch_size = 150
+    batches = [filtered_test_df.iloc[i:i+batch_size] for i in range(0, len(filtered_test_df), batch_size)]
+
+    # Process each batch in separate processes
+    for batch_df in batches:
+        p = Process(target=process_batch, args=(batch_df,))
+        #,))
+    # ,))
+        p.start()
+        p.join()  # Wait for the process to finish before starting the next one
+    #``
 
 #print("All batches have been processed.")
 
