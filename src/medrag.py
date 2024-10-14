@@ -96,9 +96,9 @@ class MedRAG:
             elif "llama-3" in llm_name.lower():
                 self.max_length = 8192
                 self.context_length = 7168
-                if ".1" in llm_name or ".2" in llm_name:
-                    self.max_length = 131072
-                    self.context_length = 128000
+                # if ".1" in llm_name or ".2" in llm_name:
+                #     self.max_length = 131072
+                #     self.context_length = 128000
             elif "meditron-70b" in llm_name.lower():
                 self.tokenizer.chat_template = open('./templates/meditron.jinja').read().replace('    ', '').replace('\n', '')
                 self.max_length = 4096
@@ -178,7 +178,7 @@ class MedRAG:
                     pad_token_id=self.tokenizer.eos_token_id,
                     max_length=self.max_length,
                     truncation=True,
-                    stopping_criteria=stopping_criteria
+                    stopping_criteria=stopping_criteria,
                 )
             else:
                 response = self.model(
