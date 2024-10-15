@@ -113,7 +113,7 @@ if __name__ == "__main__":
 
     device_ids = [0, 1, 2, 3]  # IDs of your GPUs
     processes = []
-
+    timeStart = time.time()
     for i, device_id in enumerate(device_ids):
         # Assign batches to this device: every nth batch starting from i
         device_batches = batches[i::len(device_ids)]
@@ -123,4 +123,5 @@ if __name__ == "__main__":
 
     for p in processes:
         p.join()
-
+    timeEnd = time.time()
+    print(timeEnd-timeStart)

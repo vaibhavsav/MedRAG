@@ -125,7 +125,7 @@ class MedRAG:
                         self.llm_name,
                         torch_dtype=torch.bfloat16,
                         device_map="auto",
-                        load_in_8bit=True,
+                        #load_in_8bit=True,
                         cache_dir=self.cache_dir,
                         use_auth_token="<token>"
                     )
