@@ -288,7 +288,7 @@ def process_batch(batch_df):
             count += 1
         print(f'Extracted answer: {choice} and actual answer: {str(chr(65 + value))}')
         time.sleep(1)
-    print(f'Batch processed. Correct answers: {count(count)}')
+    print(f'Batch processed. Correct answers: {count}')
 
 if __name__ == "__main__":
 
