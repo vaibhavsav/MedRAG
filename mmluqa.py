@@ -10,8 +10,10 @@ from src.utils1 import QADataset,locate_answer
 
 
 # from multiprocessing import Process,set_start_method
+llama_3_1_8B="meta-llama/Meta-Llama-3.1-8B-Instruct"
+llama_3_2_1B="meta-llama/Llama-3.2-1B-Instruct"
 
-medrag = MedRAG(llm_name="meta-llama/Llama-3.2-1B-Instruct", rag=True, retriever_name="Contriever", corpus_name="StatPearls")
+medrag = MedRAG(llm_name=llama_3_2_1B, rag=True, retriever_name="Contriever", corpus_name="StatPearls")
 
 desired_subjects = ['anatomy', 'clinical_knowledge', 'professional_medicine', 'human_genetics', 'college_medicine', 'college_biology']
 dataset = load_dataset('cais/mmlu', "all")
@@ -79,7 +81,7 @@ def process_batch(batch_df, device_id):
         options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
         torch.cuda.empty_cache()
         gc.collect()
-        answer, _, _ = medrag.answer(question=question, options=options, k=16)
+        answer, _, _ = medrag.answer(question=question, options=options, k=32)
         choice = locate_answer(answer)
         value = row['answer']
         if choice == str(chr(65 + value)):
