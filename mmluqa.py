@@ -90,6 +90,7 @@ def process_batch(batch_df, device_id):
 
 
 def process_batches(batches, device_id):
+    import torch
     torch.cuda.set_device(device_id)
     # Initialize medrag or any other necessary resources here
     for batch_df in batches:
