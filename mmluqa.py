@@ -106,10 +106,10 @@ if __name__ == "__main__":
         # Filter and convert each split to a DataFrame
         filtered_datasets[split] = filter_and_convert_to_pandas(dataset[split], desired_subjects)
 
-
+    filtered_test_df = filtered_datasets['test']
     # Assuming 'filtered_test_df' is your DataFrame and 'batch_size' is defined
     batch_size = 150
-    batches = [filtered_datasets.iloc[i:i+batch_size] for i in range(0, len(filtered_datasets), batch_size)]
+    batches = [filtered_test_df.iloc[i:i+batch_size] for i in range(0, len(filtered_test_df), batch_size)]
 
     device_ids = [0, 1, 2, 3]  # IDs of your GPUs
     processes = []
