@@ -79,7 +79,7 @@ def process_batch(batch_df, device_id):
         options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
         torch.cuda.empty_cache()
         gc.collect()
-        answer, _, _ = medrag.answer(question=question, options=options, k=8)
+        answer, _, _ = medrag.answer(question=question, options=options, k=16)
         choice = locate_answer(answer)
         value = row['answer']
         if choice == str(chr(65 + value)):
