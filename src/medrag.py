@@ -86,7 +86,7 @@ class MedRAG:
             self.max_length = 2048
             self.context_length = 1024
             #self.tokenizer = AutoTokenizer.from_pretrained(self.llm_name, cache_dir=self.cache_dir)
-            tokenizer = transformers.LlamaTokenizer.from_pretrained(llm_name)
+            tokenizer = transformers.LlamaTokenizer.from_pretrained(llm_name,legacy=False)
             if "mixtral" in llm_name.lower():
                 self.tokenizer.chat_template = open('./templates/mistral-instruct.jinja').read().replace('    ', '').replace('\n', '')
                 self.max_length = 32768
@@ -110,7 +110,7 @@ class MedRAG:
                 self.tokenizer.chat_template = open('./templates/pmc_llama.jinja').read().replace('    ', '').replace('\n', '')
                 self.max_length = 2048
                 self.context_length = 1024
-            self.model = transformers.LlamaForCausalLM.from_pretrained(llm_name)
+            self.model = transformers.LlamaForCausalLM.from_pretrained(llm_name,legacy=False)
             # self.model = transformers.pipeline(
             #     "text-generation",
             #     model=self.llm_name,

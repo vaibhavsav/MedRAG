@@ -115,7 +115,7 @@ if __name__ == "__main__":
     batch_size = 150
     batches = [filtered_test_df.iloc[i:i+batch_size] for i in range(0, len(filtered_test_df), batch_size)]
 
-    device_ids = [0, 1]  # IDs of your GPUs
+    device_ids = [0]  # IDs of your GPUs
     processes = []
     timeStart = time.time()
     for i, device_id in enumerate(device_ids):
