@@ -110,31 +110,31 @@ class MedRAG:
                 self.max_length = 2048
                 self.context_length = 1024
             
-            # self.model = transformers.pipeline(
-            #     "text-generation",
-            #     model=self.llm_name,
-            #     # torch_dtype=torch.float16,
-            #     torch_dtype=torch.bfloat16,
-            #     device_map="auto",
-            #     #model_kwargs={"cache_dir":self.cache_dir},
-            #     use_auth_token="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",
-            #     load_in_8bit=True,
-            # )
-                
-            model = AutoModelForCausalLM.from_pretrained(
-                        self.llm_name,
-                        torch_dtype=torch.bfloat16,
-                        device_map="auto",
-                        #load_in_8bit=True,
-                        cache_dir=self.cache_dir,
-                        use_auth_token="<token>"
-                    )
             self.model = transformers.pipeline(
-                        "text-generation",
-                        model=model,
-                        tokenizer=self.tokenizer,
-                        device_map="auto"
-                    )
+                "text-generation",
+                model=self.llm_name,
+                # torch_dtype=torch.float16,
+                torch_dtype=torch.bfloat16,
+                device_map="auto",
+                model_kwargs={"cache_dir":self.cache_dir},
+                #use_auth_token="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",
+                #load_in_8bit=True,
+            )
+                
+            # model = AutoModelForCausalLM.from_pretrained(
+            #             self.llm_name,
+            #             torch_dtype=torch.bfloat16,
+            #             device_map="auto",
+            #             #load_in_8bit=True,
+            #             cache_dir=self.cache_dir,
+            #             use_auth_token="<token>"
+            #         )
+            # self.model = transformers.pipeline(
+            #             "text-generation",
+            #             model=model,
+            #             tokenizer=self.tokenizer,
+            #             device_map="auto"
+            #         )
         
         self.follow_up = follow_up
         if self.rag and self.follow_up:
