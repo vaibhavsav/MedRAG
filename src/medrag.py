@@ -108,8 +108,10 @@ class MedRAG:
                 self.templates["medrag_prompt"] = meditron_medrag
             elif "pmc_llama" in llm_name.lower():
                 self.tokenizer.chat_template = open('./templates/pmc_llama.jinja').read().replace('    ', '').replace('\n', '')
-                self.max_length = 2048
-                self.context_length = 1024
+                # self.max_length = 2048
+                # self.context_length = 1024
+                self.max_length = 8192
+                self.context_length = 7168
             
             #config = LlamaConfig.from_pretrained(llm_name)
             # self.model = transformers.LlamaForCausalLM.from_pretrained(llm_name)
