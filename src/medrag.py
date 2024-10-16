@@ -111,8 +111,8 @@ class MedRAG:
                 self.max_length = 2048
                 self.context_length = 1024
             
-            config = LlamaConfig.from_pretrained(llm_name)
-            self.model = transformers.LlamaForCausalLM.from_pretrained(llm_name, config)
+            #config = LlamaConfig.from_pretrained(llm_name)
+            self.model = transformers.LlamaForCausalLM.from_pretrained(llm_name)
 
             # self.model = transformers.pipeline(
             #     "text-generation",
