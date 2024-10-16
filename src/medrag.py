@@ -85,7 +85,8 @@ class MedRAG:
         else:
             self.max_length = 2048
             self.context_length = 1024
-            self.tokenizer = AutoTokenizer.from_pretrained(self.llm_name, cache_dir=self.cache_dir)
+            #self.tokenizer = AutoTokenizer.from_pretrained(self.llm_name, cache_dir=self.cache_dir)
+            tokenizer = transformers.LlamaTokenizer.from_pretrained(llm_name)
             if "mixtral" in llm_name.lower():
                 self.tokenizer.chat_template = open('./templates/mistral-instruct.jinja').read().replace('    ', '').replace('\n', '')
                 self.max_length = 32768
@@ -109,17 +110,18 @@ class MedRAG:
                 self.tokenizer.chat_template = open('./templates/pmc_llama.jinja').read().replace('    ', '').replace('\n', '')
                 self.max_length = 2048
                 self.context_length = 1024
+            self.model = transformers.LlamaForCausalLM.from_pretrained(llm_name)
+            # self.model = transformers.pipeline(
+            #     "text-generation",
+            #     model=self.llm_name,
+            #     # torch_dtype=torch.float16,
+            #     torch_dtype=torch.bfloat16,
+            #     device_map="auto",
+            #     model_kwargs={"cache_dir":self.cache_dir},
+            #     #use_auth_token="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",
+            #     #load_in_8bit=True,
+            # )
             
-            self.model = transformers.pipeline(
-                "text-generation",
-                model=self.llm_name,
-                # torch_dtype=torch.float16,
-                torch_dtype=torch.bfloat16,
-                device_map="auto",
-                model_kwargs={"cache_dir":self.cache_dir},
-                #use_auth_token="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",
-                #load_in_8bit=True,
-            )
                 
             # model = AutoModelForCausalLM.from_pretrained(
             #             self.llm_name,

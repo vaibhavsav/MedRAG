@@ -12,7 +12,7 @@ from src.utils1 import QADataset,locate_answer
 # from multiprocessing import Process,set_start_method
 llama_3_1_8B="meta-llama/Meta-Llama-3.1-8B-Instruct"
 llama_3_2_1B="meta-llama/Llama-3.2-1B-Instruct"
-pmc_llama = "chaoyi-wu/MedLLaMA_13B"
+pmc_llama = 'chaoyi-wu/MedLLaMA_13B'
 
 medrag = MedRAG(llm_name=pmc_llama, rag=False, retriever_name="Contriever", corpus_name="StatPearls")
 
