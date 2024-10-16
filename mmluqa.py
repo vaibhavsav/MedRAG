@@ -12,8 +12,9 @@ from src.utils1 import QADataset,locate_answer
 # from multiprocessing import Process,set_start_method
 llama_3_1_8B="meta-llama/Meta-Llama-3.1-8B-Instruct"
 llama_3_2_1B="meta-llama/Llama-3.2-1B-Instruct"
+pmc_llama = "chaoyi-wu/MedLLaMA_13B"
 
-medrag = MedRAG(llm_name=llama_3_1_8B, rag=True, retriever_name="Contriever", corpus_name="StatPearls")
+medrag = MedRAG(llm_name=pmc_llama, rag=False, retriever_name="Contriever", corpus_name="StatPearls")
 
 desired_subjects = ['anatomy', 'clinical_knowledge', 'professional_medicine', 'human_genetics', 'college_medicine', 'college_biology']
 dataset = load_dataset('cais/mmlu', "all")
@@ -114,7 +115,7 @@ if __name__ == "__main__":
     batch_size = 150
     batches = [filtered_test_df.iloc[i:i+batch_size] for i in range(0, len(filtered_test_df), batch_size)]
 
-    device_ids = [0, 1, 2, 3]  # IDs of your GPUs
+    device_ids = [0, 1]  # IDs of your GPUs
     processes = []
     timeStart = time.time()
     for i, device_id in enumerate(device_ids):
