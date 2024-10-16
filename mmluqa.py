@@ -82,12 +82,13 @@ def process_batch(batch_df, device_id):
         options = {chr(65 + i): option for i, option in enumerate(row['choices'])}
         torch.cuda.empty_cache()
         gc.collect()
-        answer, _, _ = medrag.answer(question=question, options=options, k=32)
+        answer, snippets, scores = medrag.answer(question=question, options=options, k=32)
+        print(answer)
         choice = locate_answer(answer)
         value = row['answer']
         if choice == str(chr(65 + value)):
             count += 1
-        print(f'Extracted answer: {choice} and actual answer: {str(chr(65 + value))}')
+        print(f'Extracted answer: {choice},  actual answer: {str(chr(65 + value))} , score: {scores}')
         time.sleep(1)
     print(f'Batch processed on device {device_id}. Correct answers: {count}')
 
