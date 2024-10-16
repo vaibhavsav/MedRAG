@@ -6,7 +6,7 @@ import torch
 import time
 import argparse
 import transformers
-from transformers import AutoTokenizer,AutoModelForCausalLM
+from transformers import AutoTokenizer,AutoModelForCausalLM, LlamaConfig
 import openai
 from transformers import StoppingCriteria, StoppingCriteriaList
 import tiktoken
@@ -110,7 +110,10 @@ class MedRAG:
                 self.tokenizer.chat_template = open('./templates/pmc_llama.jinja').read().replace('    ', '').replace('\n', '')
                 self.max_length = 2048
                 self.context_length = 1024
-            self.model = transformers.LlamaForCausalLM.from_pretrained(llm_name,legacy=False)
+            
+            config = LlamaConfig.from_pretrained(llm_name)
+            self.model = transformers.LlamaForCausalLM.from_pretrained(llm_name, config)
+
             # self.model = transformers.pipeline(
             #     "text-generation",
             #     model=self.llm_name,
