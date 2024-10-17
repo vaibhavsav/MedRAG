@@ -127,10 +127,10 @@ class MedRAG:
             #     # load_in_4bit=True,
             # )
             # model = model.to('cuda')
-            self.model = LlamaForCausalLM.from_pretrained('axiong/PMC_LLaMA_13B',
-                                         torch_dtype=torch.bfloat16,
-                                         device_map="auto",
-                                         cache_dir=self.cache_dir)
+            self.model = transformers.pipeline('text-generation', 
+                                               model='axiong/PMC_LLaMA_13B', 
+                                               device=0
+                                               )
 
             
                 
@@ -195,14 +195,15 @@ class MedRAG:
                 )
             else:
                 response = self.model(
-                    prompt,
-                    #do_sample=False,
-                    #eos_token_id=self.tokenizer.eos_token_id,
-                    #pad_token_id=self.tokenizer.eos_token_id,
-                    # max_length=self.max_length,
-                    # truncation=True,
-                    # stopping_criteria=stopping_criteria
-                )
+                        prompt,
+                        do_sample=False,
+                        max_length=self.max_length,
+                        num_return_sequences=1,
+                        eos_token_id=self.tokenizer.eos_token_id,
+                        pad_token_id=self.tokenizer.eos_token_id,
+                        truncation=True,
+                        stopping_criteria=stopping_criteria
+                    )
             # ans = response[0]["generated_text"]
             ans = response[0]["generated_text"][len(prompt):]
         return ans
