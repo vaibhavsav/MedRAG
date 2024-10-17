@@ -199,9 +199,9 @@ class MedRAG:
                     #do_sample=False,
                     #eos_token_id=self.tokenizer.eos_token_id,
                     #pad_token_id=self.tokenizer.eos_token_id,
-                    max_length=self.max_length,
-                    truncation=True,
-                    stopping_criteria=stopping_criteria
+                    # max_length=self.max_length,
+                    # truncation=True,
+                    # stopping_criteria=stopping_criteria
                 )
             # ans = response[0]["generated_text"]
             ans = response[0]["generated_text"][len(prompt):]
