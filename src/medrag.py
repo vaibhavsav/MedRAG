@@ -126,6 +126,8 @@ class MedRAG:
                 #use_auth_token="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",
                 #load_in_8bit=True,
             )
+            self.model = self.model.to('cuda')
+
             
                 
             # model = AutoModelForCausalLM.from_pretrained(
