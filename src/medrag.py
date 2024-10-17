@@ -122,7 +122,7 @@ class MedRAG:
                 # torch_dtype=torch.float16,
                 torch_dtype=torch.bfloat16,
                 #device_map="auto",
-                device = "cuda:0",
+                device = "cuda:1",
                 model_kwargs={"cache_dir":self.cache_dir},
                 #use_auth_token="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",
                 #load_in_8bit=True,
