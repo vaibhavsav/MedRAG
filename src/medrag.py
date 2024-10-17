@@ -197,7 +197,7 @@ class MedRAG:
                 response = self.model(
                     prompt,
                     #do_sample=False,
-                    eos_token_id=self.tokenizer.eos_token_id,
+                    #eos_token_id=self.tokenizer.eos_token_id,
                     pad_token_id=self.tokenizer.eos_token_id,
                     max_length=self.max_length,
                     truncation=True,
