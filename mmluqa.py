@@ -1,4 +1,4 @@
-from src.parallel_medrag_gpu import MedRAG
+from src.medrag import MedRAG
 from datasets import load_dataset
 import re
 import torch
