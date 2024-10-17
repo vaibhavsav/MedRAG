@@ -129,7 +129,7 @@ class MedRAG:
             # model = model.to('cuda')
             self.model = transformers.pipeline('text-generation', 
                                                model='axiong/PMC_LLaMA_13B', 
-                                               device=0
+                                               device_map="auto",
                                                )
 
             
