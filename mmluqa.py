@@ -88,7 +88,7 @@ def process_batch(batch_df, device_id):
         value = row['answer']
         if choice == str(chr(65 + value)):
             count += 1
-        print(f'Extracted answer: {choice},  actual answer: {str(chr(65 + value))} , score: {scores}')
+        print(f'Index: {index}, Extracted answer: {choice},  actual answer: {str(chr(65 + value))} , score: {scores}')
         time.sleep(1)
     print(f'Batch processed on device {device_id}. Correct answers: {count}')
 
