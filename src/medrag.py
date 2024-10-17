@@ -110,8 +110,8 @@ class MedRAG:
                 self.tokenizer.chat_template = open('./templates/pmc_llama.jinja').read().replace('    ', '').replace('\n', '')
                 # self.max_length = 2048
                 # self.context_length = 1024
-                self.max_length = 8192
-                self.context_length = 7168
+                self.max_length = 32768
+                self.context_length = 30000
             
             #config = LlamaConfig.from_pretrained(llm_name)
             # self.model = transformers.LlamaForCausalLM.from_pretrained(llm_name)
@@ -123,8 +123,6 @@ class MedRAG:
                 torch_dtype=torch.bfloat16,
                 device_map="auto",
                 model_kwargs={"cache_dir":self.cache_dir},
-                #use_auth_token="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",
-                #load_in_8bit=True,
             )
 
             
