@@ -87,7 +87,9 @@ class MedRAG:
             self.context_length = 1024
             #self.tokenizer = AutoTokenizer.from_pretrained(self.llm_name, cache_dir=self.cache_dir)
             #tokenizer = transformers.LlamaTokenizer.from_pretrained(llm_name,legacy=False)
-            self.tokenizer = LlamaTokenizer.from_pretrained('axiong/PMC_LLaMA_13B', cache_dir=self.cache_dir)
+            self.tokenizer = LlamaTokenizer.from_pretrained('axiong/PMC_LLaMA_13B', 
+                                                            legacy=False ,
+                                                            cache_dir=self.cache_dir)
             if "mixtral" in llm_name.lower():
                 self.tokenizer.chat_template = open('./templates/mistral-instruct.jinja').read().replace('    ', '').replace('\n', '')
                 self.max_length = 32768
@@ -127,10 +129,18 @@ class MedRAG:
             #     # load_in_4bit=True,
             # )
             # model = model.to('cuda')
-            self.model = transformers.pipeline('text-generation', 
-                                               model='axiong/PMC_LLaMA_13B', 
-                                               device_map="auto",
-                                               )
+            # self.model = transformers.pipeline('text-generation', 
+            #                                    model='axiong/PMC_LLaMA_13B', 
+            #                                    device_map="auto",
+            #                                    )
+
+            self.model = transformers.LlamaForCausalLM.from_pretrained(
+                                            self.llm_name, 
+                                            cache_dir=self.cache_dir, 
+                                            torch_dtype=torch.bfloat16
+                                            )    
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            self.model = self.model.to(self.device)
 
             
                 
