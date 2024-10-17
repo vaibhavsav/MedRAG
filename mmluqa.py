@@ -5,7 +5,7 @@ import torch
 import time
 import gc
 
-from src.utils1 import QADataset,locate_answer
+from src.utils1 import QADataset,locate_answer,locate_answer4pub_llama
 # from torch.utils.data import Dataset, DataLoader
 
 
@@ -84,7 +84,7 @@ def process_batch(batch_df, device_id):
         gc.collect()
         answer, snippets, scores = medrag.answer(question=question, options=options, k=32)
         print(answer)
-        choice = locate_answer(answer)
+        choice = locate_answer4pub_llama(answer)
         value = row['answer']
         if choice == str(chr(65 + value)):
             count += 1
