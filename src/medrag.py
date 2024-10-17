@@ -123,7 +123,7 @@ class MedRAG:
                 torch_dtype=torch.bfloat16,
                 device_map="auto",
                 model_kwargs={"cache_dir":self.cache_dir},
-                load_in_8bit=True,
+                load_in_4bit=True,
             )
 
             
