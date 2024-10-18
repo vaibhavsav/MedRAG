@@ -55,6 +55,7 @@ if __name__ == "__main__":
         if choice == str(item['answer']):
             count += 1
         print(f"Expected Answer: {choice} , Actual Answer: {value}")
+        print(count)
     
     print(f"The number of correct answers: {count}")
     
