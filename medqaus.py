@@ -32,7 +32,10 @@ def extract_data(data):
     
     return extracted_data
 
+pmc_llama = 'axiong/PMC_LLaMA_13B'
+
 if __name__ == "__main__":
+    medrag = MedRAG(llm_name=pmc_llama, rag=False)
     with open('benchmark.json', 'r') as file:
         data = json.load(file)
     
@@ -50,10 +53,10 @@ if __name__ == "__main__":
         value = item['answer']
         if choice == str(item['answer']):
             count += 1
-        print("Expected Answer: {choice} , Actual Answer: {value}")
+        print(f"Expected Answer: {choice} , Actual Answer: {value}")
         print("\n")
     
-    print("The number of correct answers: {count}")
+    print(f"The number of correct answers: {count}")
     
 
     
