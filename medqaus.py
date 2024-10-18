@@ -68,6 +68,7 @@ if __name__ == "__main__":
             save_dir = os.path.join(results_dir, dataset_name, "rag_"+str(k), llm_name, corpus_name, retriever_name)
         else:
             save_dir = os.path.join(results_dir, dataset_name, "cot", llm_name)
+            print(save_dir)
         if os.path.exists(save_dir):
             if "pmc_llama" in llm_name.lower():
                 acc, std, flag = evaluate(datasets[dataset_name], save_dir, split, locate_answer4pub_llama)
