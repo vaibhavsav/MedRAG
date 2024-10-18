@@ -21,7 +21,7 @@ def evaluate(dataset, save_dir, split="test", locate_fun=locate_answer):
     total_len = len(dataset)
 
     # for i, fpath in enumerate(sorted([f for f in os.listdir(save_dir) if f.endswith(".json")])[:total_len]):
-    for q_idx in range(len(dataset)):
+    for q_idx in range(100):
         fpath = os.path.join(save_dir, split + "_" + dataset.index[q_idx] + ".json")
         answers = []
         for it in json.load(open(fpath))[:1]:
