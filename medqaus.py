@@ -51,7 +51,7 @@ if __name__ == "__main__":
     dataset_names = ['medqa', 'medmcqa', 'pubmedqa', 'bioasq']
     datasets = {key:QADataset(key) for key in dataset_names}
 
-    results_dir="home/vaibhav/MEDRAG/prediction"
+    results_dir="/home/vaibhav/MEDRAG/prediction"
     llm_name="axiong/PMC_LLaMA_13B"
 
     scores = []
