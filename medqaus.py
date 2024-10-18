@@ -49,12 +49,12 @@ if __name__ == "__main__":
         torch.cuda.empty_cache()
         gc.collect()
         answer, snippets, scores = medrag.answer(question=question, options=options, k=32)
+        print(answer)
         choice = locate_answer4pub_llama(answer)
         value = item['answer']
         if choice == str(item['answer']):
             count += 1
         print(f"Expected Answer: {choice} , Actual Answer: {value}")
-        print("\n")
     
     print(f"The number of correct answers: {count}")
     
