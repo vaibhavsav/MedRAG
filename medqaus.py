@@ -2,7 +2,7 @@ import os
 import json
 import argparse
 import re
-from utils1 import QADataset, locate_answer, locate_answer4pub_llama
+from src.utils1 import QADataset, locate_answer, locate_answer4pub_llama
 from sklearn.metrics import accuracy_score
 import numpy as np
 import statistics
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     rag=False
     corpus_name=""
     retriever_name=""
-    
+
     for dataset_name in dataset_names:
         print("[{:s}] ".format(dataset_name), end="")
         split = "test"
