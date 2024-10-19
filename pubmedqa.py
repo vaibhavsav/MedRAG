@@ -45,7 +45,9 @@ if __name__ == "__main__":
     count = 0
     for item in extracted_data:
         question = item['question']
-        options = item['options'] 
+        options = item['options']
+        print(question) 
+        print(options)
         torch.cuda.empty_cache()
         gc.collect()
         answer, snippets, scores = medrag.answer(question=question, options=options, k=32)
