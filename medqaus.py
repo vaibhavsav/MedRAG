@@ -12,7 +12,7 @@ import gc
 
 
 pmc_llama = 'axiong/PMC_LLaMA_13B'
-medrag = MedRAG(llm_name=pmc_llama, rag=True, retriever_name="RRF-4", corpus_name="MedCPT")
+medrag = MedRAG(llm_name=pmc_llama, rag=True, retriever_name="RRF-4", corpus_name="MedCorp")
 
 
 # Function to extract questions, options, and answers
