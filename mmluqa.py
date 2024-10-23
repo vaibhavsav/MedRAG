@@ -14,7 +14,7 @@ llama_3_1_8B="meta-llama/Meta-Llama-3.1-8B-Instruct"
 llama_3_2_1B="meta-llama/Llama-3.2-1B-Instruct"
 pmc_llama = 'axiong/PMC_LLaMA_13B'
 
-medrag = MedRAG(llm_name=pmc_llama, rag=True, retriever_name="MedCPT", corpus_name="MedCorp")
+medrag = MedRAG(llm_name=pmc_llama, rag=True, retriever_name="RRF-4", corpus_name="MedCorp")
 
 desired_subjects = ['anatomy', 'clinical_knowledge', 'professional_medicine', 'human_genetics', 'college_medicine', 'college_biology']
 dataset = load_dataset('cais/mmlu', "all")
