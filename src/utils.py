@@ -146,6 +146,8 @@ class Retriever:
                 print("Chunking the statpearls corpus...")
                 os.system("python src/data/statpearls.py")
         self.index_dir = os.path.join(self.db_dir, self.corpus_name, "index", self.retriever_name.replace("Query-Encoder", "Article-Encoder"))
+        print(self.chunk_dir)
+        print(self.index_dir)
         if "bm25" in self.retriever_name.lower():
             from pyserini.search.lucene import LuceneSearcher
             self.metadatas = None
