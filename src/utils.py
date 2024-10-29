@@ -153,7 +153,9 @@ class Retriever:
             if os.path.exists(self.index_dir):
                 self.index = LuceneSearcher(os.path.join(self.index_dir))
             else:
+                print("python -m pyserini.index.lucene --collection JsonCollection --input {:s} --index {:s} --generator DefaultLuceneDocumentGenerator --threads 16".format(self.chunk_dir, self.index_dir))
                 os.system("python -m pyserini.index.lucene --collection JsonCollection --input {:s} --index {:s} --generator DefaultLuceneDocumentGenerator --threads 16".format(self.chunk_dir, self.index_dir))
+                
                 self.index = LuceneSearcher(os.path.join(self.index_dir))
         else:
             if os.path.exists(os.path.join(self.index_dir, "faiss.index")):
