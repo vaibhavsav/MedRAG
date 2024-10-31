@@ -155,15 +155,18 @@ class Retriever:
             if os.path.exists(self.index_dir):
                 self.index = LuceneSearcher(os.path.join(self.index_dir))
             else:
+                print('I was here')
                 print("python -m pyserini.index.lucene --collection JsonCollection --input {:s} --index {:s} --generator DefaultLuceneDocumentGenerator --threads 16".format(self.chunk_dir, self.index_dir))
                 os.system("python -m pyserini.index.lucene --collection JsonCollection --input {:s} --index {:s} --generator DefaultLuceneDocumentGenerator --threads 16".format(self.chunk_dir, self.index_dir))
                 
                 self.index = LuceneSearcher(os.path.join(self.index_dir))
         else:
             if os.path.exists(os.path.join(self.index_dir, "faiss.index")):
+                print('I was here3')
                 self.index = faiss.read_index(os.path.join(self.index_dir, "faiss.index"))
                 self.metadatas = [json.loads(line) for line in open(os.path.join(self.index_dir, "metadatas.jsonl")).read().strip().split('\n')]
             else:
+                print('I was here2')
                 print("[In progress] Embedding the {:s} corpus with the {:s} retriever...".format(self.corpus_name, self.retriever_name.replace("Query-Encoder", "Article-Encoder")))
                 if self.corpus_name in ["textbooks", "pubmed", "wikipedia"] and self.retriever_name in ["allenai/specter", "facebook/contriever", "ncbi/MedCPT-Query-Encoder"] and not os.path.exists(os.path.join(self.index_dir, "embedding")):
                     print("[In progress] Downloading the {:s} embeddings given by the {:s} model...".format(self.corpus_name, self.retriever_name.replace("Query-Encoder", "Article-Encoder")))
