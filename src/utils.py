@@ -131,7 +131,7 @@ class Retriever:
     def __init__(self, retriever_name="ncbi/MedCPT-Query-Encoder", corpus_name="textbooks", db_dir="./corpus", HNSW=False, **kwarg):
         self.retriever_name = retriever_name
         self.corpus_name = corpus_name
-
+        print('I was here')
         self.db_dir = db_dir
         if not os.path.exists(self.db_dir):
             os.makedirs(self.db_dir)
@@ -154,8 +154,9 @@ class Retriever:
             self.embedding_function = None
             if os.path.exists(self.index_dir):
                 self.index = LuceneSearcher(os.path.join(self.index_dir))
+                print('I was here5')
             else:
-                print('I was here')
+                print('I was here4')
                 print("python -m pyserini.index.lucene --collection JsonCollection --input {:s} --index {:s} --generator DefaultLuceneDocumentGenerator --threads 16".format(self.chunk_dir, self.index_dir))
                 os.system("python -m pyserini.index.lucene --collection JsonCollection --input {:s} --index {:s} --generator DefaultLuceneDocumentGenerator --threads 16".format(self.chunk_dir, self.index_dir))
                 
