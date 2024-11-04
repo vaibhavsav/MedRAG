@@ -12,7 +12,7 @@ import gc
 
 
 pmc_llama = 'axiong/PMC_LLaMA_13B'
-medrag = MedRAG(llm_name=pmc_llama, rag=False)
+medrag = MedRAG(llm_name=pmc_llama, rag=True, retriever_name="RRF-4", corpus_name="MedCorp")
 
 
 # Function to extract questions, options, and answers
@@ -35,7 +35,7 @@ def extract_data(data):
 pmc_llama = 'axiong/PMC_LLaMA_13B'
 
 if __name__ == "__main__":
-    medrag = MedRAG(llm_name=pmc_llama, rag=False)
+    #medrag = MedRAG(llm_name=pmc_llama, rag=False)
     with open('benchmark.json', 'r') as file:
         data = json.load(file)
     
