@@ -138,6 +138,7 @@ def construct_index(index_dir, model_name, h_dim=768, HNSW=False, M=32, num_gpus
     if HNSW:
         M = M
         if "specter" in model_name.lower():
+            print("I was here in specter h_dim")
             index = faiss.IndexHNSWFlat(h_dim, M)
         else:
             index = faiss.IndexHNSWFlat(h_dim, M)
