@@ -98,10 +98,42 @@ def embed(chunk_dir, index_dir, model_name, **kwarg):
         embed_chunks = model.encode([""], **kwarg)
     return embed_chunks.shape[-1]
 
-def construct_index(index_dir, model_name, h_dim=768, HNSW=False, M=32):
+# def construct_index(index_dir, model_name, h_dim=768, HNSW=False, M=32):
 
+#     with open(os.path.join(index_dir, "metadatas.jsonl"), 'w') as f:
+#         f.write("")
+    
+#     if HNSW:
+#         M = M
+#         if "specter" in model_name.lower():
+#             index = faiss.IndexHNSWFlat(h_dim, M)
+#         else:
+#             index = faiss.IndexHNSWFlat(h_dim, M)
+#             index.metric_type = faiss.METRIC_INNER_PRODUCT
+#     else:
+#         print("I was here  in else")
+#         if "specter" in model_name.lower():
+#             index = faiss.IndexFlatL2(h_dim)
+#             print("I was here  in specter h_dim")
+#         else:
+#             index = faiss.IndexFlatIP(h_dim)
+
+#     print("I was here successfully")
+#     for fname in tqdm.tqdm(sorted(os.listdir(os.path.join(index_dir, "embedding")))):
+#         curr_embed = np.load(os.path.join(index_dir, "embedding", fname))
+#         index.add(curr_embed)
+#         with open(os.path.join(index_dir, "metadatas.jsonl"), 'a+') as f:
+#             f.write("\n".join([json.dumps({'index': i, 'source': fname.replace(".npy", "")}) for i in range(len(curr_embed))]) + '\n')
+
+#     faiss.write_index(index, os.path.join(index_dir, "faiss.index"))
+#     return index
+
+def construct_index(index_dir, model_name, h_dim=768, HNSW=False, M=32, num_gpus=4):
     with open(os.path.join(index_dir, "metadatas.jsonl"), 'w') as f:
         f.write("")
+
+    # Initialize GPU resources across multiple GPUs
+    res = [faiss.StandardGpuResources() for _ in range(num_gpus)]
     
     if HNSW:
         M = M
@@ -111,18 +143,31 @@ def construct_index(index_dir, model_name, h_dim=768, HNSW=False, M=32):
             index = faiss.IndexHNSWFlat(h_dim, M)
             index.metric_type = faiss.METRIC_INNER_PRODUCT
     else:
+        print("I was here in else")
         if "specter" in model_name.lower():
             index = faiss.IndexFlatL2(h_dim)
+            print("I was here in specter h_dim")
         else:
             index = faiss.IndexFlatIP(h_dim)
 
+    # Convert to a GPU index spread across all GPUs
+    gpu_index = faiss.index_cpu_to_all_gpus(index)  # Distributes the index across all available GPUs
+
+    print("I was here successfully")
     for fname in tqdm.tqdm(sorted(os.listdir(os.path.join(index_dir, "embedding")))):
         curr_embed = np.load(os.path.join(index_dir, "embedding", fname))
-        index.add(curr_embed)
+
+        # Add embeddings to multi-GPU index
+        gpu_index.add(curr_embed)
+        
+        # Write metadata for each embedding
         with open(os.path.join(index_dir, "metadatas.jsonl"), 'a+') as f:
             f.write("\n".join([json.dumps({'index': i, 'source': fname.replace(".npy", "")}) for i in range(len(curr_embed))]) + '\n')
 
+    # Transfer index back to CPU for saving
+    index = faiss.index_gpu_to_cpu(gpu_index)
     faiss.write_index(index, os.path.join(index_dir, "faiss.index"))
+
     return index
 
 
