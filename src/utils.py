@@ -156,16 +156,32 @@ def construct_index(index_dir, model_name, h_dim=768, HNSW=False, M=32, num_gpus
     gpu_index = faiss.index_cpu_to_all_gpus(index)  # Distributes the index across all available GPUs
 
     print("I was here successfully")
-    for fname in tqdm.tqdm(sorted(os.listdir(os.path.join(index_dir, "embedding")))):
-        curr_embed = np.load(os.path.join(index_dir, "embedding", fname))
+    # for fname in tqdm.tqdm(sorted(os.listdir(os.path.join(index_dir, "embedding")))):
+    #     curr_embed = np.load(os.path.join(index_dir, "embedding", fname))
 
-        # Add embeddings to multi-GPU index
-        gpu_index.add(curr_embed)
+    #     # Add embeddings to multi-GPU index
+    #     gpu_index.add(curr_embed)
         
-        # Write metadata for each embedding
-        with open(os.path.join(index_dir, "metadatas.jsonl"), 'a+') as f:
-            f.write("\n".join([json.dumps({'index': i, 'source': fname.replace(".npy", "")}) for i in range(len(curr_embed))]) + '\n')
+    #     # Write metadata for each embedding
+    #     with open(os.path.join(index_dir, "metadatas.jsonl"), 'a+') as f:
+    #         f.write("\n".join([json.dumps({'index': i, 'source': fname.replace(".npy", "")}) for i in range(len(curr_embed))]) + '\n')
 
+    batch_size = 50  # Define a smaller batch size (adjust as needed based on GPU memory)
+
+    for fname in tqdm.tqdm(sorted(os.listdir(os.path.join(index_dir, "embedding")))):
+        # Load the entire embedding file
+        curr_embed = np.load(os.path.join(index_dir, "embedding", fname))
+        
+        # Split embeddings into smaller batches
+        for i in range(0, len(curr_embed), batch_size):
+            batch = curr_embed[i:i + batch_size]
+            
+            # Add each batch to the multi-GPU index
+            gpu_index.add(batch)
+            
+            # Write metadata for each batch
+            with open(os.path.join(index_dir, "metadatas.jsonl"), 'a+') as f:
+                f.write("\n".join([json.dumps({'index': i + j, 'source': fname.replace(".npy", "")}) for j in range(len(batch))]) + '\n')
     # Transfer index back to CPU for saving
     index = faiss.index_gpu_to_cpu(gpu_index)
     faiss.write_index(index, os.path.join(index_dir, "faiss.index"))
@@ -252,6 +268,7 @@ class Retriever:
                 self.index = construct_index(index_dir=self.index_dir, model_name=self.retriever_name.replace("Query-Encoder", "Article-Encoder"), h_dim=h_dim, HNSW=HNSW)
                 print("[Finished] Corpus indexing finished!")
                 self.metadatas = [json.loads(line) for line in open(os.path.join(self.index_dir, "metadatas.jsonl")).read().strip().split('\n')]            
+                print("Assigned metadatas from jsonl file")
             if "contriever" in self.retriever_name.lower():
                 self.embedding_function = SentenceTransformer(self.retriever_name, device="cuda" if torch.cuda.is_available() else "cpu")
             else:
