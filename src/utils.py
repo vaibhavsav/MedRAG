@@ -7,6 +7,7 @@ import json
 import torch
 import tqdm
 import numpy as np
+import gc
 
 corpus_names = {
     "PubMed": ["pubmed"],
@@ -216,7 +217,11 @@ def construct_index(index_dir, model_name, h_dim=768, HNSW=False, M=32, batch_si
             # Write metadata for each batch
             with open(os.path.join(index_dir, "metadatas.jsonl"), 'a+') as f:
                 f.write("\n".join([json.dumps({'index': i + j, 'source': fname.replace(".npy", "")}) for j in range(len(batch))]) + '\n')
-
+            del batch
+            gc.collect()
+        
+        del curr_embed
+        gc.collect()
     # Save the index to disk
     faiss.write_index(index, os.path.join(index_dir, "faiss.index"))
 
