@@ -129,12 +129,13 @@ def embed(chunk_dir, index_dir, model_name, **kwarg):
 #     return index
 
 def construct_index(index_dir, model_name, h_dim=768, HNSW=False, M=32, num_gpus=4):
+    print("Inside construct_index method")
     with open(os.path.join(index_dir, "metadatas.jsonl"), 'w') as f:
         f.write("")
-
+    print("Initialize GPU resources across multiple GPUs")
     # Initialize GPU resources across multiple GPUs
     res = [faiss.StandardGpuResources() for _ in range(num_gpus)]
-    
+    print("Initialize GPU resources across multiple GPUs successful")
     if HNSW:
         M = M
         if "specter" in model_name.lower():
