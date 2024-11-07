@@ -166,7 +166,7 @@ def construct_index(index_dir, model_name, h_dim=768, HNSW=False, M=32, num_gpus
     #     with open(os.path.join(index_dir, "metadatas.jsonl"), 'a+') as f:
     #         f.write("\n".join([json.dumps({'index': i, 'source': fname.replace(".npy", "")}) for i in range(len(curr_embed))]) + '\n')
 
-    batch_size = 1000  # Define a smaller batch size (adjust as needed based on GPU memory)
+    batch_size = 3000  # Define a smaller batch size (adjust as needed based on GPU memory)
 
     for fname in tqdm.tqdm(sorted(os.listdir(os.path.join(index_dir, "embedding")))):
         # Load the entire embedding file
@@ -178,7 +178,7 @@ def construct_index(index_dir, model_name, h_dim=768, HNSW=False, M=32, num_gpus
             
             # Add each batch to the multi-GPU index
             gpu_index.add(batch)
-            
+            torch.cuda.empty_cache()
             # Write metadata for each batch
             with open(os.path.join(index_dir, "metadatas.jsonl"), 'a+') as f:
                 f.write("\n".join([json.dumps({'index': i + j, 'source': fname.replace(".npy", "")}) for j in range(len(batch))]) + '\n')
