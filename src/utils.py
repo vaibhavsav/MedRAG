@@ -166,7 +166,7 @@ def construct_index(index_dir, model_name, h_dim=768, HNSW=False, M=32, num_gpus
     #     with open(os.path.join(index_dir, "metadatas.jsonl"), 'a+') as f:
     #         f.write("\n".join([json.dumps({'index': i, 'source': fname.replace(".npy", "")}) for i in range(len(curr_embed))]) + '\n')
 
-    batch_size = 50  # Define a smaller batch size (adjust as needed based on GPU memory)
+    batch_size = 1  # Define a smaller batch size (adjust as needed based on GPU memory)
 
     for fname in tqdm.tqdm(sorted(os.listdir(os.path.join(index_dir, "embedding")))):
         # Load the entire embedding file
