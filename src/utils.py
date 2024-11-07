@@ -128,62 +128,96 @@ def embed(chunk_dir, index_dir, model_name, **kwarg):
 #     faiss.write_index(index, os.path.join(index_dir, "faiss.index"))
 #     return index
 
-def construct_index(index_dir, model_name, h_dim=768, HNSW=False, M=32, num_gpus=4):
-    print("Inside construct_index method")
+# def construct_index(index_dir, model_name, h_dim=768, HNSW=False, M=32, num_gpus=4):
+#     print("Inside construct_index method")
+#     with open(os.path.join(index_dir, "metadatas.jsonl"), 'w') as f:
+#         f.write("")
+#     print("Initialize GPU resources across multiple GPUs")
+#     # Initialize GPU resources across multiple GPUs
+#     res = [faiss.StandardGpuResources() for _ in range(num_gpus)]
+#     for gpu_resource in res:
+#         gpu_resource.setTempMemory(0)  
+#     print("Initialize GPU resources across multiple GPUs successful")
+#     if HNSW:
+#         M = M
+#         if "specter" in model_name.lower():
+#             print("I was here in specter h_dim")
+#             index = faiss.IndexHNSWFlat(h_dim, M)
+#         else:
+#             index = faiss.IndexHNSWFlat(h_dim, M)
+#             index.metric_type = faiss.METRIC_INNER_PRODUCT
+#     else:
+#         print("I was here in else")
+#         if "specter" in model_name.lower():
+#             index = faiss.IndexFlatL2(h_dim)
+#             print("I was here in specter h_dim")
+#         else:
+#             index = faiss.IndexFlatIP(h_dim)
+
+#     # Convert to a GPU index spread across all GPUs
+#     gpu_index = faiss.index_cpu_to_all_gpus(index)  # Distributes the index across all available GPUs
+
+#     print("I was here successfully")
+#     # for fname in tqdm.tqdm(sorted(os.listdir(os.path.join(index_dir, "embedding")))):
+#     #     curr_embed = np.load(os.path.join(index_dir, "embedding", fname))
+
+#     #     # Add embeddings to multi-GPU index
+#     #     gpu_index.add(curr_embed)
+        
+#     #     # Write metadata for each embedding
+#     #     with open(os.path.join(index_dir, "metadatas.jsonl"), 'a+') as f:
+#     #         f.write("\n".join([json.dumps({'index': i, 'source': fname.replace(".npy", "")}) for i in range(len(curr_embed))]) + '\n')
+
+#     batch_size = 3000  # Define a smaller batch size (adjust as needed based on GPU memory)
+
+#     for fname in tqdm.tqdm(sorted(os.listdir(os.path.join(index_dir, "embedding")))):
+#         # Load the entire embedding file
+#         curr_embed = np.load(os.path.join(index_dir, "embedding", fname))
+        
+#         # Split embeddings into smaller batches
+#         for i in range(0, len(curr_embed), batch_size):
+#             batch = curr_embed[i:i + batch_size]
+            
+#             # Add each batch to the multi-GPU index
+#             gpu_index.add(batch)
+#             torch.cuda.empty_cache()
+#             # Write metadata for each batch
+#             with open(os.path.join(index_dir, "metadatas.jsonl"), 'a+') as f:
+#                 f.write("\n".join([json.dumps({'index': i + j, 'source': fname.replace(".npy", "")}) for j in range(len(batch))]) + '\n')
+#     # Transfer index back to CPU for saving
+#     index = faiss.index_gpu_to_cpu(gpu_index)
+#     faiss.write_index(index, os.path.join(index_dir, "faiss.index"))
+
+#     return index
+
+def construct_index(index_dir, model_name, h_dim=768, HNSW=False, M=32, batch_size=1000):
+    # Initialize metadata file
     with open(os.path.join(index_dir, "metadatas.jsonl"), 'w') as f:
         f.write("")
-    print("Initialize GPU resources across multiple GPUs")
-    # Initialize GPU resources across multiple GPUs
-    res = [faiss.StandardGpuResources() for _ in range(num_gpus)]
-    print("Initialize GPU resources across multiple GPUs successful")
+
+    # Choose the appropriate index type based on parameters
     if HNSW:
-        M = M
-        if "specter" in model_name.lower():
-            print("I was here in specter h_dim")
-            index = faiss.IndexHNSWFlat(h_dim, M)
-        else:
-            index = faiss.IndexHNSWFlat(h_dim, M)
-            index.metric_type = faiss.METRIC_INNER_PRODUCT
+        index = faiss.IndexHNSWFlat(h_dim, M)
+        index.metric_type = faiss.METRIC_INNER_PRODUCT if "specter" not in model_name.lower() else faiss.METRIC_L2
     else:
-        print("I was here in else")
-        if "specter" in model_name.lower():
-            index = faiss.IndexFlatL2(h_dim)
-            print("I was here in specter h_dim")
-        else:
-            index = faiss.IndexFlatIP(h_dim)
+        index = faiss.IndexFlatIP(h_dim) if "specter" not in model_name.lower() else faiss.IndexFlatL2(h_dim)
 
-    # Convert to a GPU index spread across all GPUs
-    gpu_index = faiss.index_cpu_to_all_gpus(index)  # Distributes the index across all available GPUs
+    print("Index initialized successfully")
 
-    print("I was here successfully")
-    # for fname in tqdm.tqdm(sorted(os.listdir(os.path.join(index_dir, "embedding")))):
-    #     curr_embed = np.load(os.path.join(index_dir, "embedding", fname))
-
-    #     # Add embeddings to multi-GPU index
-    #     gpu_index.add(curr_embed)
-        
-    #     # Write metadata for each embedding
-    #     with open(os.path.join(index_dir, "metadatas.jsonl"), 'a+') as f:
-    #         f.write("\n".join([json.dumps({'index': i, 'source': fname.replace(".npy", "")}) for i in range(len(curr_embed))]) + '\n')
-
-    batch_size = 3000  # Define a smaller batch size (adjust as needed based on GPU memory)
-
+    # Process each embedding file in batches
     for fname in tqdm.tqdm(sorted(os.listdir(os.path.join(index_dir, "embedding")))):
-        # Load the entire embedding file
         curr_embed = np.load(os.path.join(index_dir, "embedding", fname))
-        
+
         # Split embeddings into smaller batches
         for i in range(0, len(curr_embed), batch_size):
             batch = curr_embed[i:i + batch_size]
-            
-            # Add each batch to the multi-GPU index
-            gpu_index.add(batch)
-            torch.cuda.empty_cache()
+            index.add(batch)  # Add batch to index
+
             # Write metadata for each batch
             with open(os.path.join(index_dir, "metadatas.jsonl"), 'a+') as f:
                 f.write("\n".join([json.dumps({'index': i + j, 'source': fname.replace(".npy", "")}) for j in range(len(batch))]) + '\n')
-    # Transfer index back to CPU for saving
-    index = faiss.index_gpu_to_cpu(gpu_index)
+
+    # Save the index to disk
     faiss.write_index(index, os.path.join(index_dir, "faiss.index"))
 
     return index
